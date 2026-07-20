@@ -1,0 +1,302 @@
+{% extends 'core/base.html' %}
+
+{% block title %}مدیریت تعمیرات و نگهداری (نت) - حاما پارچه{% endblock %}
+{% block page_title %}نگهداری و تعمیرات (نت){% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item active" aria-current="page">نگهداری و تعمیرات (نت)</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="h4 mb-1 font-sans font-medium text-gray-900">سامانه جامع مدیریت نگهداری و تعمیرات (نت)</h2>
+    <p class="text-muted text-xs mb-0">ثبت، پیگیری، عیب‌یابی و پایش خرابی‌ها و توقفات ماشین‌آلات صنعتی</p>
+  </div>
+  <a href="{% url 'production:maintenance_create' %}" class="btn-primary-custom text-decoration-none d-inline-flex align-items-center">
+    <i data-feather="plus" class="me-1" style="width: 18px; height: 18px;"></i> ثبت درخواست نت جدید
+  </a>
+</div>
+
+<!-- کارت خلاصه وضعیت (Metrics) -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3 bg-white border-0 shadow-sm rounded-4 d-flex align-items-center">
+      <div class="p-3 bg-primary-subtle rounded-3 text-primary me-3">
+        <i data-feather="tool" style="width: 24px; height: 24px;"></i>
+      </div>
+      <div>
+        <div class="text-muted text-xs font-sans font-medium">کل درخواست‌ها</div>
+        <div class="h4 mb-0 font-sans font-bold text-gray-900 mt-1">{{ page_obj.paginator.count }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3 bg-white border-0 shadow-sm rounded-4 d-flex align-items-center">
+      <div class="p-3 bg-danger-subtle rounded-3 text-danger me-3">
+        <i data-feather="alert-triangle" style="width: 24px; height: 24px;"></i>
+      </div>
+      <div>
+        <div class="text-muted text-xs font-sans font-medium">موارد دارای توقف تولید</div>
+        <div class="h4 mb-0 font-sans font-bold text-danger mt-1" id="stoppage-count-metric">۰</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3 bg-white border-0 shadow-sm rounded-4 d-flex align-items-center">
+      <div class="p-3 bg-success-subtle rounded-3 text-success me-3">
+        <i data-feather="check-circle" style="width: 24px; height: 24px;"></i>
+      </div>
+      <div>
+        <div class="text-muted text-xs font-sans font-medium">تعمیرات نهایی شده</div>
+        <div class="h4 mb-0 font-sans font-bold text-success mt-1" id="completed-count-metric">۰</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card-custom p-3 bg-white border-0 shadow-sm rounded-4 d-flex align-items-center">
+      <div class="p-3 bg-warning-subtle rounded-3 text-warning me-3">
+        <i data-feather="clock" style="width: 24px; height: 24px;"></i>
+      </div>
+      <div>
+        <div class="text-muted text-xs font-sans font-medium">مجموع ساعات توقف</div>
+        <div class="h4 mb-0 font-sans font-bold text-warning mt-1" id="total-stoppage-hours-metric">۰ ساعت</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- فیلترها و جستجو -->
+<div class="card-custom mb-4 fade-in-up">
+  <form method="get" class="row g-3">
+    <div class="col-md-4">
+      <label for="q" class="form-label font-sans font-medium text-xs text-gray-500">جستجو در کد نت، تجهیز، محل یا قطعات</label>
+      <input type="text" name="q" id="q" value="{{ query }}" class="form-control" placeholder="مثال: MNT-1405-0001 یا دستگاه بافندگی...">
+    </div>
+    <div class="col-md-2">
+      <label for="repair_type" class="form-label font-sans font-medium text-xs text-gray-500">نوع تعمیر</label>
+      <select name="repair_type" id="repair_type" class="form-select">
+        <option value="">همه انواع</option>
+        {% for code, label in repair_types %}
+        <option value="{{ code }}" {% if repair_type_filter == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="dept" class="form-label font-sans font-medium text-xs text-gray-500">واحد درخواست‌کننده</label>
+      <select name="dept" id="dept" class="form-select">
+        <option value="">همه واحدها</option>
+        {% for code, label in departments %}
+        <option value="{{ code }}" {% if dept_filter == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label for="stoppage" class="form-label font-sans font-medium text-xs text-gray-500">وضعیت توقف خط</label>
+      <select name="stoppage" id="stoppage" class="form-select">
+        <option value="">همه حالت‌ها</option>
+        <option value="yes" {% if stoppage_filter == 'yes' %}selected{% endif %}>دارای توقف</option>
+        <option value="no" {% if stoppage_filter == 'no' %}selected{% endif %}>بدون توقف</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end gap-2">
+      <button type="submit" class="btn btn-primary-custom w-50">فیلتر کردن</button>
+      <a href="{% url 'production:maintenance_list' %}" class="btn btn-outline-soft w-50 text-center text-decoration-none d-inline-flex align-items-center justify-content-center">پاک کردن</a>
+    </div>
+  </form>
+</div>
+
+<!-- لیست درخواست‌ها -->
+<div class="card-custom fade-in-up">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="h6 mb-0 text-gray-700">دفتر ثبت فعالیت‌ها و دستورکارهای نت</h3>
+    <button onclick="exportTableToExcel('maintenance-table', 'گزارش_نگهداری_و_تعمیرات')" class="btn btn-outline-success btn-xs d-flex align-items-center gap-1">
+      <i data-feather="download" style="width: 14px; height: 14px;"></i> خروجی اکسل
+    </button>
+  </div>
+
+  {% if page_obj %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle" id="maintenance-table">
+      <thead>
+        <tr>
+          <th>کد درخواست نت</th>
+          <th>تاریخ اعلام</th>
+          <th>کد و نام دستگاه</th>
+          <th>محل استقرار</th>
+          <th>نوع تعمیر</th>
+          <th>واحد متقاضی</th>
+          <th>توقف تولید</th>
+          <th>مهلت کار</th>
+          <th>مدت توقف واقعی</th>
+          <th>وضعیت تاییدات</th>
+          <th class="text-end">عملیات</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rec in page_obj %}
+        <tr data-stoppage="{% if rec.has_stoppage %}yes{% else %}no{% endif %}" data-completed="{% if rec.end_date %}yes{% else %}no{% endif %}" data-hours="{{ rec.total_stoppage_hours|default:0 }}">
+          <td>
+            <a href="{% url 'production:maintenance_detail' rec.pk %}" class="font-mono text-xs font-bold text-decoration-none">
+              {{ rec.maintenance_code }}
+            </a>
+          </td>
+          <td>{{ rec.date_jalali }}</td>
+          <td>
+            <div class="font-sans font-medium text-gray-900">{{ rec.machine.name }}</div>
+            <div class="font-mono text-xxs text-gray-500">کد: {{ rec.machine.machine_code }}</div>
+          </td>
+          <td><span class="text-gray-600 text-xs">{{ rec.location|default:"-" }}</span></td>
+          <td>
+            {% if rec.repair_type == 'emergency' %}
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">اضطراری EM</span>
+            {% elif rec.repair_type == 'preventive' %}
+            <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill">پیشگیرانه PM</span>
+            {% elif rec.repair_type == 'periodic' %}
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">دوره‌ای</span>
+            {% else %}
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill">{{ rec.get_repair_type_display }}</span>
+            {% endif %}
+          </td>
+          <td><span class="text-xs">{{ rec.get_requester_unit_display }}</span></td>
+          <td>
+            {% if rec.has_stoppage %}
+            <span class="text-danger font-medium text-xs d-inline-flex align-items-center gap-1">
+              <span class="spinner-grow spinner-grow-sm text-danger" style="width: 8px; height: 8px;"></span> دارد
+            </span>
+            {% else %}
+            <span class="text-success text-xs">ندارد</span>
+            {% endif %}
+          </td>
+          <td>{{ rec.deadline_date_jalali }}</td>
+          <td class="font-mono text-xs text-gray-700">
+            {% if rec.end_date %}
+              {{ rec.total_stoppage_hours }} ساعت
+            {% else %}
+              <span class="text-muted italic">در حال اقدام...</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex flex-column gap-1">
+              {% if rec.manager_approved %}
+              <span class="text-success text-xxs d-inline-flex align-items-center gap-1">
+                <i data-feather="check" style="width: 12px; height: 12px;"></i> تایید مسئول نت
+              </span>
+              {% else %}
+              <span class="text-muted text-xxs d-inline-flex align-items-center gap-1">
+                <i data-feather="x" style="width: 12px; height: 12px;"></i> تایید مسئول نت
+              </span>
+              {% endif %}
+
+              {% if rec.requester_approved %}
+              <span class="text-success text-xxs d-inline-flex align-items-center gap-1">
+                <i data-feather="check" style="width: 12px; height: 12px;"></i> تایید متقاضی
+              </span>
+              {% else %}
+              <span class="text-muted text-xxs d-inline-flex align-items-center gap-1">
+                <i data-feather="x" style="width: 12px; height: 12px;"></i> تایید متقاضی
+              </span>
+              {% endif %}
+            </div>
+          </td>
+          <td class="text-end">
+            <div class="dropdown">
+              <button class="btn btn-light btn-sm rounded-circle p-1 border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i data-feather="more-vertical" style="width: 16px; height: 16px;"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm border">
+                <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'production:maintenance_detail' rec.pk %}"><i data-feather="eye" style="width: 14px; height: 14px;"></i> شناسنامه نت</a></li>
+                <li><a class="dropdown-item d-flex align-items-center gap-2 text-warning" href="{% url 'production:maintenance_edit' rec.pk %}"><i data-feather="edit-2" style="width: 14px; height: 14px;"></i> ویرایش و گزارش کار</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="{% url 'production:maintenance_delete' rec.pk %}"><i data-feather="trash-2" style="width: 14px; height: 14px;"></i> حذف درخواست</a></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- صفحه‌بندی -->
+  {% if page_obj.has_other_pages %}
+  <nav class="d-flex justify-content-center mt-4">
+    <ul class="pagination pagination-sm">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&repair_type={{ repair_type_filter }}&dept={{ dept_filter }}&stoppage={{ stoppage_filter }}">قبلی</a>
+      </li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+      <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+        <a class="page-link" href="?page={{ num }}&q={{ query }}&repair_type={{ repair_type_filter }}&dept={{ dept_filter }}&stoppage={{ stoppage_filter }}">{{ num }}</a>
+      </li>
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&repair_type={{ repair_type_filter }}&dept={{ dept_filter }}&stoppage={{ stoppage_filter }}">بعدی</a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="text-center py-5">
+    <div class="text-muted mb-3"><i data-feather="tool" style="width: 48px; height: 48px; stroke-width: 1;"></i></div>
+    <h5 class="text-gray-700">هیچ درخواست تعمیری یافت نشد</h5>
+    <p class="text-muted text-xs">برای ثبت اولین درخواست، روی دکمه «ثبت درخواست نت جدید» در بالا کلیک کنید.</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- اسکریپت محاسبه پویا مقادیر کارت‌های بالا و صادرات اکسل -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    let stoppageCount = 0;
+    let completedCount = 0;
+    let totalStoppageHours = 0.0;
+
+    const rows = document.querySelectorAll('#maintenance-table tbody tr');
+    rows.forEach(row => {
+      const stoppage = row.getAttribute('data-stoppage');
+      const completed = row.getAttribute('data-completed');
+      const hours = parseFloat(row.getAttribute('data-hours') || '0');
+
+      if (stoppage === 'yes') stoppageCount++;
+      if (completed === 'yes') completedCount++;
+      totalStoppageHours += hours;
+    });
+
+    document.getElementById('stoppage-count-metric').innerText = stoppageCount.toLocaleString('fa-IR');
+    document.getElementById('completed-count-metric').innerText = completedCount.toLocaleString('fa-IR');
+    document.getElementById('total-stoppage-hours-metric').innerText = totalStoppageHours.toLocaleString('fa-IR', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + ' ساعت';
+  });
+
+  // تابع همگانی خروجی اکسل
+  function exportTableToExcel(tableID, filename = '') {
+    const table = document.getElementById(tableID);
+    if (!table) return;
+    
+    let html = table.outerHTML;
+    
+    // حل کردن فرمت زبان فارسی در اکسل با افزودن BOM
+    const blob = new Blob(['\ufeff' + html], {
+      type: 'application/vnd.ms-excel'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (filename || 'excel-export') + '.xls';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+</script>
+{% endblock %}

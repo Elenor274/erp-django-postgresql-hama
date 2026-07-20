@@ -1,0 +1,102 @@
+{% extends "core/base.html" %}
+
+{% block title %}مدیریت ماشین‌آلات صنعتی - حاما پارچه{% endblock %}
+{% block page_title %}شناسنامه و وضعیت فیزیکی ماشین‌آلات{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item active" aria-current="page">ماشین‌آلات</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up">
+
+    <!-- بنر راهنما -->
+    <div class="card-custom mb-4 p-4 position-relative overflow-hidden border-0 shadow-sm" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-right: 4px solid var(--accent) !important;">
+        <div class="position-absolute" style="left: -15px; top: -15px; opacity: 0.05; pointer-events: none;">
+            <i data-feather="cpu" style="width: 140px; height: 140px; stroke-width: 1;"></i>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <h5 class="fw-bold text-gray-900 mb-1.5" style="font-size: 1.15rem; letter-spacing: -0.02em;">سیستم پایش و بهینه‌سازی ظرفیت خطوط تولید</h5>
+                <p class="text-muted text-xs mb-0 leading-relaxed">ثبت اطلاعات فنی، ظرفیت اسمی و وضعیت پایداری فیزیکی دستگاه‌های نساجی اعم از خطوط ریسندگی، بافندگی، رپیرز و دیگ‌های تکمیل رنگرزی.</p>
+            </div>
+            <div class="col-md-3 text-md-end mt-3 mt-md-0 d-flex flex-column align-items-md-end gap-2 justify-content-center">
+                <a href="{% url 'production:machine_create' %}" class="btn btn-primary text-white d-inline-flex align-items-center gap-1.5 py-2 px-3.5 rounded-3 border-0 text-xs fw-bold font-sans" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); width: fit-content;">
+                    <i data-feather="plus-circle" style="width: 15px; height: 15px;"></i> تعریف ماشین‌آلات جدید
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول دستگاه‌ها -->
+    <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+        {% if machines %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="border: none;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">کد تجهیز / دستگاه</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نام و مدل دستگاه</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 140px;">وضعیت کارکرد فعلی</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">شرح جزئیات فنی و محل نصب</th>
+                        <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 220px;">عملیات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for machine in machines %}
+                    <tr>
+                        <!-- کد ماشین -->
+                        <td class="ps-4 font-mono text-xs text-muted fw-bold">#{{ machine.machine_code }}</td>
+                        
+                        <!-- نام ماشین -->
+                        <td class="fw-bold text-gray-900 text-xs">
+                            <i data-feather="cpu" class="text-muted me-1.5" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                            {{ machine.name }}
+                        </td>
+                        
+                        <!-- وضعیت -->
+                        <td class="text-center">
+                            {% if machine.status == 'active' %}
+                                <span class="badge bg-success-subtle text-success py-1 px-2.5 rounded-2 text-xxs fw-bold border border-success-subtle">تجهیز فعال</span>
+                            {% elif machine.status == 'repair' %}
+                                <span class="badge bg-warning-subtle text-warning py-1 px-2.5 rounded-2 text-xxs fw-bold border border-warning-subtle">در حال تعمیر (نت)</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger py-1 px-2.5 rounded-2 text-xxs fw-bold border border-danger-subtle">خارج از سرویس</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- توضیحات -->
+                        <td class="text-xs text-muted leading-relaxed">{{ machine.description|default:"بدون توضیح فنی ثبت شده" }}</td>
+
+                        <!-- عملیات -->
+                        <td class="pe-4 text-center">
+                            <div class="d-flex justify-content-center gap-1.5">
+                                <a href="{% url 'production:machine_edit' machine.pk %}" class="btn-edit">
+                                    <i data-feather="edit-2" style="width: 12px; height: 12px;"></i> ویرایش
+                                </a>
+                                <a href="{% url 'production:machine_delete' machine.pk %}" class="btn-delete">
+                                    <i data-feather="trash-2" style="width: 12px; height: 12px;"></i> حذف
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-2">
+                <i data-feather="cpu" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+            </div>
+            <h6 class="fw-bold m-0 text-xs text-dark">تجهیزی در سامانه ثبت نشده است</h6>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

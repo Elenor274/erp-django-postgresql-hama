@@ -1,0 +1,89 @@
+{% extends "core/base.html" %}
+
+{% block title %}تعریف انبار جدید - حاما پارچه{% endblock %}
+{% block page_title %}تعریف و افزودن انبار جدید{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'warehouse:warehouse_list' %}">مدیریت انبارها</a></li>
+  <li class="breadcrumb-item active" aria-current="page">تعریف انبار جدید</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up max-w-2xl mx-auto">
+
+    <!-- کارت تعریف انبار با طراحی مدرن و پاکیزه -->
+    <div class="card-custom bg-white p-4 border-0 shadow-sm rounded-4" style="border-top: 4px solid var(--accent) !important;">
+        
+        <!-- هدر کارت -->
+        <div class="border-bottom pb-3 mb-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold text-primary mb-1 d-flex align-items-center gap-2" style="color: var(--accent) !important;">
+                    <i data-feather="plus-circle" style="width: 20px; height: 20px; stroke-width: 2.5;"></i>
+                    افزودن و تعریف انبار جدید
+                </h5>
+                <p class="text-muted text-xs mb-0">با افزودن انبار جدید، امکان تفکیک مجزا، صدور کاردکس، رسید فیزیکی و حواله مهیا خواهد شد.</p>
+            </div>
+        </div>
+
+        {% if form.errors %}
+        <div class="alert alert-danger p-3 rounded-3 mb-4 text-xs">
+            <strong class="d-block mb-1.5">خطاهای ثبت فرم را تصحیح فرمایید:</strong>
+            <ul class="mb-0 ps-3">
+                {% for field in form %}
+                    {% if field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ field.errors.0 }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" class="no-autofill">
+            {% csrf_token %}
+
+            <div class="row g-3.5">
+                <!-- نام انبار -->
+                <div class="col-md-6 mb-2">
+                    <label for="{{ form.name.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">نام انبار فیزیکی*</label>
+                    {{ form.name }}
+                    <span class="text-xxs text-muted d-block mt-1">مثال: انبار مرکزی، انبار مواد اولیه شماره ۱</span>
+                </div>
+
+                <!-- کد انبار -->
+                <div class="col-md-6 mb-2">
+                    <label for="{{ form.code.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">کد انبار (سیستمی و یکتا)*</label>
+                    {{ form.code }}
+                    <span class="text-xxs text-muted d-block mt-1">یک کد کوتاه انگلیسی یا عددی وارد کنید. مثال: WH-01</span>
+                </div>
+
+                <!-- نوع انبار -->
+                <div class="col-md-12 mb-2">
+                    <label for="{{ form.warehouse_type.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">نوع کاربری انبار*</label>
+                    {{ form.warehouse_type }}
+                    <span class="text-xxs text-muted d-block mt-1">دسته‌بندی انبار جهت تفکیک فرآیندها</span>
+                </div>
+
+                <!-- توضیحات انبار -->
+                <div class="col-md-12 mb-2">
+                    <label for="{{ form.description.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">توضیحات و آدرس استقرار فیزیکی</label>
+                    {{ form.description }}
+                    <span class="text-xxs text-muted d-block mt-1">اختیاری - جزئیاتی نظیر آدرس فیزیکی، شماره تلفن هماهنگی، نام مسئول انبار و...</span>
+                </div>
+            </div>
+
+            <!-- دکمه‌های کنترلی -->
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                <a href="{% url 'warehouse:warehouse_list' %}" class="btn btn-outline-soft py-2 px-3 text-xs fw-bold">انصراف و بازگشت</a>
+                <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-1.5 px-4 font-sans font-bold text-white rounded-3 border-0 py-2 text-xs" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);">
+                    <i data-feather="check" style="width: 15px; height: 15px;"></i> ثبت و تعریف انبار
+                </button>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}

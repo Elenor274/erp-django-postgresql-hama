@@ -1,0 +1,32 @@
+{% extends "core/base.html" %}
+
+{% block title %}ایجاد گروه کالا{% endblock %}
+{% block page_title %}ایجاد گروه کالا{% endblock %}
+
+{% block content %}
+
+<div class="card-custom" style="max-width:600px; margin:auto;">
+
+    <h5 class="mb-4" style="font-weight:600;">ایجاد گروه جدید</h5>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+        </div>
+
+        <button type="submit" class="btn-primary-custom">
+            <i data-feather="save"></i>
+            ثبت گروه
+        </button>
+
+        <a href="{% url 'products:group_list' %}" class="btn-edit">
+            بازگشت
+        </a>
+    </form>
+
+</div>
+
+{% endblock %}

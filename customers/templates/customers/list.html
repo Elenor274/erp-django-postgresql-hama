@@ -1,0 +1,133 @@
+{% extends "core/base.html" %}
+
+{% block title %}مدیریت مشتریان - حاما پارچه{% endblock %}
+{% block page_title %}داشبورد مدیریت مشتریان{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item active" aria-current="page">مدیریت مشتریان</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up">
+
+    <!-- بنر راهنمای بالای صفحه -->
+    <div class="card-custom mb-4 p-4 position-relative overflow-hidden border-0 shadow-sm" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-right: 4px solid var(--accent) !important;">
+        <div class="position-absolute" style="left: -15px; top: -15px; opacity: 0.05; pointer-events: none;">
+            <i data-feather="users" style="width: 140px; height: 140px; stroke-width: 1;"></i>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <h5 class="fw-bold text-gray-900 mb-1.5" style="font-size: 1.15rem; letter-spacing: -0.02em;">سیستم مدیریت روابط مشتریان (CRM)</h5>
+                <p class="text-muted text-xs mb-0 leading-relaxed">تعریف پرونده مشتریان حقیقی و حقوقی، ثبت آدرس و شماره‌های تماس جهت صدور سفارشات فروش و تسریع فرآیندهای مالی و ترخیص کالا.</p>
+            </div>
+            <div class="col-md-3 text-md-end mt-3 mt-md-0 d-flex flex-column align-items-md-end gap-2 justify-content-center">
+                <a href="{% url 'customers:customer_create' %}" class="btn btn-primary text-white d-inline-flex align-items-center gap-1.5 py-2 px-3.5 rounded-3 border-0 text-xs fw-bold font-sans" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); width: fit-content;">
+                    <i data-feather="user-plus" style="width: 15px; height: 15px;"></i> تعریف مشتری جدید
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- بخش جستجوی سریع مشتریان -->
+    <div class="card-custom mb-4 p-3 border-0 shadow-sm bg-white">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-6">
+                <div class="position-relative">
+                    <i data-feather="search" class="text-muted position-absolute" style="right: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px;"></i>
+                    <input type="text" name="q" value="{{ query|default:'' }}" class="form-control" placeholder="جستجوی نام مشتری، کد مشتری، شماره تماس یا شهر..." style="padding-right: 40px; font-size: 0.85rem; border-radius: 8px;">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-soft w-100 py-2 text-xs fw-bold">جستجوی مشتری</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- جدول مشتریان -->
+    <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="border: none;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">کد مشتری</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نام مشتری</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نام خانوادگی</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">شماره تماس</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">شهر محل استقرار</th>
+                        <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 180px;">عملیات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for c in page_obj %}
+                    <tr>
+                        <!-- کد مشتری -->
+                        <td class="ps-4 font-mono text-xs text-muted fw-bold">#{{ c.customer_code }}</td>
+                        
+                        <!-- نام -->
+                        <td class="fw-bold text-gray-900 text-xs">{{ c.name }}</td>
+                        
+                        <!-- فامیل -->
+                        <td class="fw-bold text-gray-900 text-xs">{{ c.last_name }}</td>
+                        
+                        <!-- شماره تماس -->
+                        <td class="text-center font-mono text-xs text-dark">{{ c.phone_number }}</td>
+                        
+                        <!-- شهر -->
+                        <td class="text-center text-xs">
+                            <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1 rounded-2 text-xxs fw-bold">
+                                {{ c.city|default:"ثبت‌نشده" }}
+                            </span>
+                        </td>
+
+                        <!-- عملیات -->
+                        <td class="pe-4 text-center">
+                            <div class="d-flex justify-content-center gap-1.5">
+                                <a href="{% url 'customers:customer_edit' c.id %}" class="btn-edit">
+                                    <i data-feather="edit-2" style="width: 12px; height: 12px;"></i> ویرایش
+                                </a>
+                                <a href="{% url 'customers:customer_delete_confirm' c.id %}" class="btn-delete">
+                                    <i data-feather="trash-2" style="width: 12px; height: 12px;"></i> حذف
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <div class="mb-2">
+                                <i data-feather="user-x" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+                            </div>
+                            <h6 class="fw-bold m-0 text-xs text-dark">هیچ مشتری یافت نشد</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- صفحه‌بندی -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer bg-white border-top p-3 d-flex justify-content-center">
+            <nav aria-label="صفحه‌بندی">
+                <div class="d-flex align-items-center gap-2">
+                    {% if page_obj.has_previous %}
+                        <a class="btn btn-outline-soft py-1.5 px-3 text-xs fw-bold" href="?page={{ page_obj.previous_page_number }}&q={{ query|default:'' }}">قبلی</a>
+                    {% endif %}
+                    
+                    <span class="text-muted text-xs px-2">صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span>
+                    
+                    {% if page_obj.has_next %}
+                        <a class="btn btn-outline-soft py-1.5 px-3 text-xs fw-bold" href="?page={{ page_obj.next_page_number }}&q={{ query|default:'' }}">بعدی</a>
+                    {% endif %}
+                </div>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

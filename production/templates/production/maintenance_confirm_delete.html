@@ -1,0 +1,23 @@
+{% extends 'core/base.html' %}
+
+{% block title %}حذف درخواست نت - حاما پارچه{% endblock %}
+{% block page_title %}حذف درخواست نگهداری و تعمیرات{% endblock %}
+
+{% block content %}
+<div class="card-custom max-w-lg mx-auto py-4 px-5 text-center fade-in-up">
+  <div class="text-danger mb-3">
+    <i data-feather="alert-octagon" style="width: 56px; height: 56px;"></i>
+  </div>
+  
+  <h3 class="h5 mb-2 font-sans font-medium text-gray-900">آیا از حذف درخواست نت اطمینان دارید؟</h3>
+  <p class="text-muted text-xs mb-4">
+    شما در حال حذف درخواست تعمیرات کد <strong class="text-danger font-mono">{{ record.maintenance_code }}</strong> مربوط به دستگاه <strong class="text-dark">{{ record.machine.name }}</strong> می‌باشید. این عمل غیرقابل بازگشت است.
+  </p>
+
+  <form method="post" class="d-flex justify-content-center gap-2">
+    {% csrf_token %}
+    <a href="{% url 'production:maintenance_list' %}" class="btn btn-outline-soft px-4">انصراف</a>
+    <button type="submit" class="btn btn-danger px-4">بله، حذف شود</button>
+  </form>
+</div>
+{% endblock %}

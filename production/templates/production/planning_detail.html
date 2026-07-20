@@ -1,0 +1,152 @@
+{% extends 'core/base.html' %}
+
+{% block title %}جزئیات برنامه‌ریزی تولید - حاما پارچه{% endblock %}
+{% block page_title %}جزئیات برنامه‌ریزی: {{ plan.planning_code }}{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'production:planning_list' %}">برنامه‌ریزی تولید</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{{ plan.planning_code }}</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 fade-in-up">
+  <div class="col-lg-8">
+    <!-- جزئیات اصلی -->
+    <div class="card-custom mb-4">
+      <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+        <h3 class="h5 mb-0">اطلاعات کلی برنامه‌ریزی</h3>
+        <div>
+          {% if plan.status == 'pending' %}
+          <span class="badge bg-secondary text-white px-3 py-2">در انتظار شروع</span>
+          {% elif plan.status == 'producing' %}
+          <span class="badge bg-info text-white px-3 py-2">در حال تولید</span>
+          {% elif plan.status == 'completed' %}
+          <span class="badge bg-success text-white px-3 py-2">تکمیل شده</span>
+          {% elif plan.status == 'suspended' %}
+          <span class="badge bg-danger text-white px-3 py-2">متوقف شده</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="text-muted text-xs mb-1">کد برنامه‌ریزی</div>
+          <div class="fw-bold font-sans">{{ plan.planning_code }}</div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted text-xs mb-1">سفارش مرتبط</div>
+          <div class="fw-bold"><a href="/orders/{{ plan.order.pk }}/">{{ plan.order.order_code }}</a></div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted text-xs mb-1">محصول خروجی هدف</div>
+          <div class="fw-bold">{{ plan.product.name }} (کد کالا: {{ plan.product.code }})</div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted text-xs mb-1">مرحله تولید</div>
+          <div class="fw-bold"><span class="badge bg-secondary-subtle text-secondary-emphasis">{{ plan.stage.name }}</span></div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted text-xs mb-1">ماشین اختصاص‌یافته</div>
+          <div class="fw-bold">{{ plan.machine.name }} ({{ plan.machine.machine_code }})</div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted text-xs mb-1">اپراتور مسئول</div>
+          <div class="fw-bold">{{ plan.operator.first_name }} {{ plan.operator.last_name }} ({{ plan.operator.operator_code }})</div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted text-xs mb-1">تاریخ شروع برنامه‌ریزی</div>
+          <div class="fw-bold font-sans">{{ plan.start_date|date:"Y/m/d" }}</div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted text-xs mb-1">تاریخ پایان تخمینی</div>
+          <div class="fw-bold font-sans">{{ plan.end_date|date:"Y/m/d" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- بخش کسر مواد اولیه و وضعیت انبار -->
+    <div class="card-custom mb-4">
+      <div class="border-bottom pb-3 mb-3">
+        <h3 class="h5 mb-0">مدیریت مواد اولیه و کسر انبار</h3>
+      </div>
+      <div class="row g-3 align-items-center">
+        <div class="col-md-7">
+          <div class="d-flex align-items-start gap-3">
+            <div class="p-3 bg-light rounded">
+              <i data-feather="package" class="text-primary" style="width: 32px; height: 32px;"></i>
+            </div>
+            <div>
+              <div class="text-muted text-xs">ماده اولیه مورد نیاز</div>
+              <div class="fw-bold fs-5">{{ plan.raw_material.name }}</div>
+              <div class="text-muted font-sans text-xs mt-1">مقدار پیش‌بینی شده: <span class="text-primary fw-bold">{{ plan.raw_material_qty }} {{ plan.raw_material.unit }}</span></div>
+              <div class="text-muted font-sans text-xs">انبار مرجع کسر موجودی: <span class="fw-bold text-dark">{{ plan.warehouse.name }}</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5 border-start ps-4">
+          <div class="text-muted text-xs mb-1">وضعیت کسر موجودی از انبار</div>
+          <div class="mb-3">
+            {% if plan.material_deducted %}
+            <div class="text-success d-flex align-items-center gap-1 fs-5 fw-bold">
+              <i data-feather="check-circle" style="width:24px; height:24px;"></i> کسر شده از موجودی
+            </div>
+            <div class="text-muted font-sans text-xs mt-1">کسر مواد اولیه به صورت سیستمی ثبت و ثبت سند خروجی با موفقیت انجام شد.</div>
+            {% else %}
+            <div class="text-warning d-flex align-items-center gap-1 fs-5 fw-bold">
+              <i data-feather="alert-circle" style="width:24px; height:24px;"></i> کسر نشده
+            </div>
+            <div class="text-muted font-sans text-xs mt-1 mb-2">مواد اولیه هنوز کسر نشده است. با کلیک بر روی دکمه زیر می‌توانید اقدام به کسر دستی نمایید.</div>
+            <form action="{% url 'production:planning_deduct' plan.pk %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary-custom btn-sm w-100">
+                <i data-feather="minus" style="width:14px;"></i> کسر دستی موجودی مواد اولیه
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <!-- وضعیت پیشرفت و آمار -->
+    <div class="card-custom mb-4">
+      <div class="border-bottom pb-3 mb-3">
+        <h3 class="h5 mb-0">وضعیت تولید و پیشرفت</h3>
+      </div>
+      <div class="text-center py-3">
+        <div class="text-muted text-xs mb-1">مقدار هدف تولید</div>
+        <div class="fs-2 fw-bold text-dark font-sans">{{ plan.target_quantity|floatformat:0 }} <span class="fs-6 fw-normal text-muted">{{ plan.product.unit }}</span></div>
+
+        <hr class="my-3">
+
+        <div class="text-muted text-xs mb-1">مقدار تولید شده واقعی</div>
+        <div class="fs-2 fw-bold text-success font-sans">{{ plan.produced_quantity|floatformat:0 }} <span class="fs-6 fw-normal text-muted">{{ plan.product.unit }}</span></div>
+      </div>
+    </div>
+
+    <!-- دکمه‌های کنترل -->
+    <div class="card-custom">
+      <div class="border-bottom pb-3 mb-3">
+        <h3 class="h5 mb-0">عملیات سیستمی</h3>
+      </div>
+      <div class="d-grid gap-2">
+        <a href="{% url 'production:planning_edit' plan.pk %}" class="btn btn-primary-custom text-center">
+          <i data-feather="edit-2" style="width:16px;"></i> ویرایش برنامه‌ریزی
+        </a>
+        <a href="{% url 'production:planning_list' %}" class="btn btn-outline-soft text-center">
+          <i data-feather="arrow-left" style="width:16px;"></i> بازگشت به لیست
+        </a>
+        <hr class="my-2">
+        <a href="{% url 'production:planning_delete' plan.pk %}" class="btn btn-sm btn-outline-danger text-center">
+          <i data-feather="trash" style="width:14px;"></i> حذف کامل برنامه‌ریزی
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

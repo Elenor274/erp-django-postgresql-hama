@@ -1,0 +1,205 @@
+{% extends 'core/base.html' %}
+
+{% block title %}تنظیمات سامانه - حاما پارچه{% endblock %}
+
+{% block page_title %}تنظیمات سیستم ERP{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">میز کار</a></li>
+  <li class="breadcrumb-item active" aria-current="page">تنظیمات عمومی سامانه</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-9">
+        <div class="card-custom mb-4 p-4 border-0 shadow-sm bg-white">
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; display: inline-flex; align-items: center; justify-content: center;">
+                    <i data-feather="settings" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold text-gray-900 m-0" style="font-size: 1.15rem;">پیکربندی عمومی سامانه</h5>
+                    <p class="text-muted text-xs mb-0">مدیریت اطلاعات هویتی کارخانه، واحد‌های محاسباتی مالی و تنظیمات وب‌سرویس سپیدار</p>
+                </div>
+            </div>
+
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row">
+                    <!-- Tab Navigation -->
+                    <div class="col-md-3 border-start">
+                        <div class="nav flex-column nav-pills gap-2" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                            <button class="nav-link active text-end text-xs fw-bold py-2.5 px-3 rounded-3" id="v-pills-factory-tab" data-bs-toggle="pill" data-bs-target="#v-pills-factory" type="button" role="tab" aria-controls="v-pills-factory" aria-selected="true">
+                                <i data-feather="home" class="me-2" style="width: 15px; height: 15px;"></i> اطلاعات کارخانه
+                            </button>
+                            <button class="nav-link text-end text-xs fw-bold py-2.5 px-3 rounded-3" id="v-pills-financial-tab" data-bs-toggle="pill" data-bs-target="#v-pills-financial" type="button" role="tab" aria-controls="v-pills-financial" aria-selected="false">
+                                <i data-feather="dollar-sign" class="me-2" style="width: 15px; height: 15px;"></i> مالی و سیستمی
+                            </button>
+                            <button class="nav-link text-end text-xs fw-bold py-2.5 px-3 rounded-3" id="v-pills-sync-tab" data-bs-toggle="pill" data-bs-target="#v-pills-sync" type="button" role="tab" aria-controls="v-pills-sync" aria-selected="false">
+                                <i data-feather="refresh-cw" class="me-2" style="width: 15px; height: 15px;"></i> همگام‌سازی و انبار
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="col-md-9 pe-md-4">
+                        <div class="tab-content" id="v-pills-tabContent">
+                            
+                            <!-- Tab 1: Factory Info -->
+                            <div class="tab-pane fade show active" id="v-pills-factory" role="tabpanel" aria-labelledby="v-pills-factory-tab">
+                                <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem;">اطلاعات پایه کارخانجات نساجی</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label for="{{ form.factory_name.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ form.factory_name.label }}</label>
+                                        {{ form.factory_name }}
+                                        {% if form.factory_name.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ form.factory_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.phone.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ form.phone.label }}</label>
+                                        {{ form.phone }}
+                                        {% if form.phone.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ form.phone.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.national_id.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ form.national_id.label }}</label>
+                                        {{ form.national_id }}
+                                        {% if form.national_id.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ form.national_id.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="{{ form.address.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ form.address.label }}</label>
+                                        {{ form.address }}
+                                        {% if form.address.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ form.address.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab 2: Financial -->
+                            <div class="tab-pane fade" id="v-pills-financial" role="tabpanel" aria-labelledby="v-pills-financial-tab">
+                                <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem;">تنظیمات مالی و پارامترهای سیستمی</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.currency.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ form.currency.label }}</label>
+                                        {{ form.currency }}
+                                        {% if form.currency.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ form.currency.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.length_unit.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ form.length_unit.label }}</label>
+                                        {{ form.length_unit }}
+                                        {% if form.length_unit.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ form.length_unit.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="{{ form.vat_rate.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ form.vat_rate.label }}</label>
+                                        {{ form.vat_rate }}
+                                        {% if form.vat_rate.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ form.vat_rate.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab 3: Integration & Stock -->
+                            <div class="tab-pane fade" id="v-pills-sync" role="tabpanel" aria-labelledby="v-pills-sync-tab">
+                                <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem;">اتصالات خارجی و کنترل انبارداری</h6>
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="form-check form-switch p-0 d-flex align-items-center justify-content-between border rounded-3 p-3 bg-light-subtle">
+                                            <div>
+                                                <label class="form-check-label text-xs fw-bold text-slate m-0" for="{{ form.sepidar_sync.id_for_label }}">{{ form.sepidar_sync.label }}</label>
+                                                <p class="text-muted text-xxs mb-0">انتقال خودکار حواله خروج و فاکتور فروش به سیستم مالی سپیدار سیستم</p>
+                                            </div>
+                                            <div class="form-check form-switch ps-4">
+                                                {{ form.sepidar_sync }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-12" id="sepidar-api-wrapper">
+                                        <label for="{{ form.sepidar_api_url.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ form.sepidar_api_url.label }}</label>
+                                        {{ form.sepidar_api_url }}
+                                        {% if form.sepidar_api_url.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ form.sepidar_api_url.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="col-12 mt-3">
+                                        <div class="form-check form-switch p-0 d-flex align-items-center justify-content-between border rounded-3 p-3 bg-light-subtle">
+                                            <div>
+                                                <label class="form-check-label text-xs fw-bold text-slate m-0" for="{{ form.auto_deduct_stock.id_for_label }}">{{ form.auto_deduct_stock.label }}</label>
+                                                <p class="text-muted text-xxs mb-0">محاسبه خودکار نخ و الیاف مصرفی بر اساس BOM محصول و کسر از انبار مواد اولیه</p>
+                                            </div>
+                                            <div class="form-check form-switch ps-4">
+                                                {{ form.auto_deduct_stock }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3 mt-4">
+                    <button type="submit" class="btn btn-primary text-white text-xs fw-bold px-4 py-2 rounded-3 border-0" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);">
+                        <i data-feather="save" class="me-1" style="width: 14px; height: 14px;"></i> ذخیره تغییرات تنظیمات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const syncSwitch = document.getElementById('{{ form.sepidar_sync.id_for_label }}');
+        const apiWrapper = document.getElementById('sepidar-api-wrapper');
+        
+        function toggleApiUrl() {
+            if (syncSwitch && apiWrapper) {
+                if (syncSwitch.checked) {
+                    apiWrapper.style.display = 'block';
+                } else {
+                    apiWrapper.style.display = 'none';
+                }
+            }
+        }
+        
+        if (syncSwitch) {
+            syncSwitch.addEventListener('change', toggleApiUrl);
+            toggleApiUrl();
+        }
+    });
+</script>
+
+<style>
+    .nav-pills .nav-link {
+        color: var(--muted);
+        border: 1px solid transparent;
+        text-align: right;
+        transition: all 0.2s;
+    }
+    .nav-pills .nav-link:hover {
+        color: var(--text);
+        background: rgba(79, 70, 229, 0.04);
+    }
+    .nav-pills .nav-link.active {
+        color: var(--accent) !important;
+        background: rgba(79, 70, 229, 0.08) !important;
+        border: 1px solid rgba(79, 70, 229, 0.15) !important;
+    }
+</style>
+{% endblock %}

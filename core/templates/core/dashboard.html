@@ -1,0 +1,932 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}داشبورد | حاما پارچه{% endblock %}
+{% block page_title %}داشبورد{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<style>
+/* Enterprise Dashboard — Grid-first, RTL, Vazirmatn
+   - No inline styles in HTML
+   - Uses variables from base.html: --bg, --panel, --text, --accent, --border, --radius, --shadow
+   - 12-column grid, gap 24px, padding 24px, radius ~18px
+   - Desktop-first; responsive fallbacks
+*/
+
+:root{
+  --bg: var(--bg, #f8fafc);
+  --panel: var(--panel, #ffffff);
+  --text: var(--text, #0f172a);
+  --accent: var(--accent, #4f46e5);
+  --accent-emerald: var(--accent-emerald, #10b981);
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --border: var(--border, #e2e8f0);
+  --radius: 18px;
+  --shadow: 0 10px 30px rgba(79, 70, 229, 0.02);
+  --gap: 24px;
+  --pad: 24px;
+  --muted: #64748b;
+  --transition: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Root */
+.dashboard-root {
+  background: var(--bg);
+  color: var(--text);
+  direction: rtl;
+  font-family: "Vazirmatn", system-ui, -apple-system, sans-serif;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: var(--gap);
+  padding: 4px 0 var(--gap) 0;
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+/* Breadcrumbs */
+.breadcrumbs-wrap { margin-bottom: 0; }
+
+/* Header welcoming banner */
+.header {
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border: 1px solid var(--border) !important;
+  border-right: 4px solid var(--accent) !important;
+  border-radius: var(--radius);
+  padding: 26px 30px;
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  gap: 16px;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: -20px;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header-left { display: flex; flex-direction: column; gap: 4px; }
+.header-greeting { display: flex; gap: 8px; align-items: baseline; }
+.header-greeting .hello { font-size: 14px; color: var(--muted); font-weight: 500; }
+.header-greeting .username { font-size: 1.25rem; font-weight: 800; color: var(--text); }
+.header-sub { font-size: 12.5px; color: var(--muted); }
+
+/* Header right */
+.header-right { display: flex; gap: 16px; align-items: center; justify-content: flex-end; text-align: right; }
+.header-right__datetime { display: flex; flex-direction: column; gap: 2px; }
+.jalali-date { font-weight: 700; font-size: 13.5px; color: var(--text); }
+.jalali-time { font-weight: 700; font-size: 12px; color: var(--muted); }
+.header-right__meta { display: flex; align-items: center; gap: 12px; }
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(79, 70, 229, 0.07);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+  border: 1px solid rgba(79, 70, 229, 0.1);
+}
+.status-pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+}
+.ed-usermeta { display: none; } /* clean up redundant user label */
+
+/* KPI strip */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--gap);
+  align-items: stretch;
+}
+.kpi {
+  background: var(--panel);
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.kpi::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: transparent;
+  transition: background var(--transition);
+}
+.kpi:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(79, 70, 229, 0.08);
+  border-color: rgba(79, 70, 229, 0.2) !important;
+}
+.kpi:hover::before {
+  background: var(--accent);
+}
+.kpi-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(79, 70, 229, 0.07);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.kpi:hover .kpi-icon {
+  background: var(--accent);
+  color: #ffffff;
+}
+.kpi-title { font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+.kpi-value { font-size: 22px; font-weight: 800; color: var(--text); }
+.kpi-meta {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-right: auto;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Main grid */
+.main-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--gap);
+  align-items: start;
+}
+
+/* Panels */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--pad);
+  transition: all var(--transition);
+}
+.panel:hover {
+  box-shadow: 0 12px 35px rgba(79, 70, 229, 0.04);
+  border-color: rgba(79, 70, 229, 0.15) !important;
+}
+.panel-orders { grid-column: span 8; min-height: 420px; display: flex; flex-direction: column; gap: 16px; }
+.side-stack { grid-column: span 4; display: flex; flex-direction: column; gap: var(--gap); }
+
+/* Panel head */
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 16px;
+  margin-bottom: 8px;
+}
+.panel-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text);
+  position: relative;
+  padding-right: 12px;
+}
+.panel-title::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+.panel-actions a {
+  color: var(--accent);
+  background: rgba(79, 70, 229, 0.06);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 11.5px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.panel-actions a:hover {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+/* Table */
+.table-wrap { overflow: auto; margin-top: 4px; }
+.table-custom {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  min-width: 720px;
+}
+.table-custom thead th {
+  background: #f8fafc;
+  padding: 12px 16px;
+  text-align: right;
+  font-weight: 700;
+  font-size: 12px;
+  color: #475569;
+  border: none;
+}
+.table-custom thead th:first-child { border-radius: 0 8px 8px 0; }
+.table-custom thead th:last-child { border-radius: 8px 0 0 8px; }
+
+.table-custom tbody tr {
+  transition: all 0.2s ease;
+}
+.table-custom tbody td {
+  padding: 14px 16px;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  font-size: 13.5px;
+  color: var(--text);
+}
+.table-custom tbody td:first-child {
+  border-right: 1px solid #f1f5f9;
+  border-radius: 0 10px 10px 0;
+}
+.table-custom tbody td:last-child {
+  border-left: 1px solid #f1f5f9;
+  border-radius: 10px 0 0 10px;
+}
+.table-custom tbody tr:hover td {
+  background: rgba(79, 70, 229, 0.02);
+  border-color: rgba(79, 70, 229, 0.1);
+}
+
+/* Badge */
+.badge-soft {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 11.5px;
+  border: 1px solid transparent;
+}
+
+/* Actions */
+.actions { display: flex; gap: 6px; justify-content: center; align-items: center; }
+.btn-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79, 70, 229, 0.05);
+  border: 1px solid rgba(79, 70, 229, 0.08);
+  color: var(--accent);
+  transition: all var(--transition);
+}
+.btn-icon:hover { background: var(--accent); color: #ffffff; transform: translateY(-2px); }
+.btn-icon.danger {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+}
+.btn-icon.danger:hover { background: var(--danger); color: #ffffff; }
+
+/* Empty state */
+.empty-state { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+
+/* Timeline */
+.timeline { display: flex; flex-direction: column; gap: 14px; overflow: auto; padding-right: 4px; }
+.timeline-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  transition: all var(--transition);
+}
+.timeline-item:hover {
+  background: #ffffff;
+  border-color: rgba(79, 70, 229, 0.15);
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.03);
+  transform: translateY(-2px);
+}
+.timeline-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79, 70, 229, 0.07);
+  color: var(--accent);
+  transition: all 0.2s;
+}
+.timeline-item:hover .timeline-icon { background: var(--accent); color: #ffffff; }
+.timeline-time { font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 2px; }
+.timeline-desc { font-size: 13px; font-weight: 600; color: #334155; line-height: 1.5; }
+.timeline-link a { font-size: 11px; font-weight: 700; color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; }
+.timeline-link a:hover { text-decoration: underline; }
+
+/* Tasks / Reminders */
+.tasks { display: flex; flex-direction: column; gap: 12px; overflow: auto; padding-right: 4px; }
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  transition: all var(--transition);
+}
+.task-item:hover {
+  background: #ffffff;
+  border-color: rgba(79, 70, 229, 0.15);
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.03);
+  transform: translateY(-2px);
+}
+.task-label { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.task-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1.5px solid #cbd5e1;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.task-title { font-weight: 700; font-size: 13px; color: #334155; }
+.task-meta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.task-progress { width: 100px; height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
+.task-progress .fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 10px; transition: width .6s cubic-bezier(.2,.9,.3,1); }
+
+/* Summary Grid */
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.summary-item {
+  text-align: center;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s;
+}
+.summary-item:hover { background: #ffffff; border-color: rgba(79, 70, 229, 0.15); }
+.summary-label { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+.summary-value { font-weight: 800; font-size: 17px; color: var(--text); }
+
+/* Bottom row */
+.bottom-row { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--gap); align-items: start; }
+.inventory-panel { grid-column: span 6; display: flex; flex-direction: column; gap: 16px; }
+.sales-panel { grid-column: span 6; display: flex; flex-direction: column; gap: 16px; }
+
+/* Inventory */
+.inventory-list { display: flex; flex-direction: column; gap: 12px; overflow: auto; padding-right: 4px; }
+.inventory-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  transition: all var(--transition);
+}
+.inventory-item:hover {
+  background: #ffffff;
+  border-color: rgba(79, 70, 229, 0.15);
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.03);
+  transform: translateY(-2px);
+}
+.inventory-name { font-weight: 700; font-size: 13px; color: #334155; }
+.inventory-sku { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.inventory-stats { display: flex; gap: 14px; align-items: center; justify-content: flex-end; }
+.inventory-qty { font-size: 12px; color: #475569; }
+.inventory-fill { width: 100px; height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
+.inventory-fill .bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 10px; transition: width .6s cubic-bezier(.2,.9,.3,1); }
+
+/* Chart */
+.chart-wrap { height: 260px; display: flex; align-items: center; justify-content: center; }
+
+/* Utilities */
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.persianize { /* marker for JS */ }
+.visually-hidden { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px,1px,1px,1px); white-space: nowrap; }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .kpi { grid-column: span 6; }
+  .panel-orders { grid-column: span 12; min-height: 360px; }
+  .side-stack { grid-column: span 12; display: flex; flex-direction: column; }
+  .inventory-panel, .sales-panel { grid-column: span 12; }
+}
+@media (max-width: 640px) {
+  .kpi { grid-column: span 12; }
+  .dashboard-root { padding: 12px 0; gap: 12px; }
+  .header { padding: 20px; flex-direction: column; align-items: flex-start; text-align: right; }
+  .header-right { width: 100%; justify-content: space-between; margin-top: 12px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="dashboard-root" role="main" aria-labelledby="dashboard-title">
+
+  {% block breadcrumbs %}{% endblock %}
+
+  <!-- Header -->
+  <header class="header" role="banner" aria-labelledby="dashboard-title">
+    <div class="header-left">
+      <div class="header-greeting" aria-hidden="false">
+        <div class="hello">سلام،</div>
+        <div id="dashboard-title" class="username">
+          {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}کاربر عزیز{% endif %}
+        </div>
+      </div>
+      <div class="header-sub">{{ hero_subtitle|default:"خلاصهٔ سریع وضعیت سیستم" }}</div>
+    </div>
+
+    <div class="header-right" role="region" aria-label="اطلاعات کاربر و وضعیت">
+      <div class="header-right__datetime" aria-live="polite">
+        <div id="jalali-date" class="jalali-date">—</div>
+        <div id="jalali-time" class="jalali-time">—</div>
+      </div>
+      <div class="header-right__meta">
+        <div class="status-pill" role="status" aria-atomic="true">سیستم: فعال</div>
+        <div class="ed-usermeta">
+          <div class="ed-usermeta__label">کاربر</div>
+          <div class="ed-usermeta__value">{{ user.get_full_name|default:user.username }}</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI strip -->
+  <section class="kpi-strip" aria-label="شاخص های کلیدی">
+    <div class="kpi" role="article" aria-labelledby="kpi-inprogress" style="grid-column: span 3;">
+      <div class="kpi-icon" aria-hidden="true"><i data-feather="clock"></i></div>
+      <div>
+        <div id="kpi-inprogress" class="kpi-title">سفارشات در حال انجام</div>
+        <div class="kpi-value persianize">{{ totals.in_progress_orders|default:"0" }}</div>
+      </div>
+      <div class="kpi-meta">
+        <div class="kpi-daily">روزانه: <span class="persianize">—</span></div>
+        <div class="kpi-monthly">ماهانه: <span class="persianize">—</span></div>
+      </div>
+    </div>
+
+    <div class="kpi" role="article" aria-labelledby="kpi-customers" style="grid-column: span 3;">
+      <div class="kpi-icon" aria-hidden="true"><i data-feather="users"></i></div>
+      <div>
+        <div id="kpi-customers" class="kpi-title">مشتریان</div>
+        <div class="kpi-value persianize">{{ totals.customers_count|default:"0" }}</div>
+      </div>
+      <div class="kpi-meta">
+        <div class="kpi-daily">روزانه: <span class="persianize">—</span></div>
+        <div class="kpi-monthly">ماهانه: <span class="persianize">—</span></div>
+      </div>
+    </div>
+
+    <div class="kpi" role="article" aria-labelledby="kpi-totalorders" style="grid-column: span 3;">
+      <div class="kpi-icon" aria-hidden="true"><i data-feather="package"></i></div>
+      <div>
+        <div id="kpi-totalorders" class="kpi-title">مجموع سفارشات</div>
+        <div class="kpi-value persianize">{{ totals.total_orders|default:"0" }}</div>
+      </div>
+      <div class="kpi-meta">
+        <div class="kpi-daily">روزانه: <span class="persianize">—</span></div>
+        <div class="kpi-monthly">ماهانه: <span class="persianize">—</span></div>
+      </div>
+    </div>
+
+    <div class="kpi" role="article" aria-labelledby="kpi-updates" style="grid-column: span 3;">
+      <div class="kpi-icon" aria-hidden="true"><i data-feather="clock"></i></div>
+      <div>
+        <div id="kpi-updates" class="kpi-title">آخرین به‌روزرسانی</div>
+        <div class="kpi-value persianize">{{ now|date:"Y/m/d H:i" }}</div>
+      </div>
+      <div class="kpi-meta">
+        <div class="kpi-daily">—</div>
+        <div class="kpi-monthly">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main grid -->
+  <section class="main-grid" aria-label="محتوای داشبورد">
+
+    <!-- Orders (left) -->
+    <section class="panel panel-orders" aria-labelledby="orders-heading">
+      <div class="panel-head">
+        <h2 id="orders-heading" class="panel-title">آخرین سفارش‌ها</h2>
+        <div class="panel-actions">
+          <a href="{{ urls.orders_list|default:'#' }}" class="link-muted">مشاهده همه</a>
+        </div>
+      </div>
+
+      <div class="table-wrap" role="region" aria-live="polite">
+        <table class="table-custom" aria-label="لیست سفارش‌ها">
+          <thead>
+            <tr>
+              <th scope="col">شماره</th>
+              <th scope="col">مشتری</th>
+              <th scope="col">تاریخ</th>
+              <th scope="col" class="text-left">مبلغ</th>
+              <th scope="col">وضعیت</th>
+              <th scope="col" class="text-center">عملیات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if recent_orders %}
+              {% for o in recent_orders %}
+                <tr>
+                  <td class="fw-bold">#{{ o.id }}</td>
+                  <td>{{ o.customer|default:"—" }}</td>
+                  <td class="muted">{{ o.date|default:"—" }}</td>
+                  <td class="text-left persianize">{{ o.total|default:"0" }}</td>
+                  <td>
+                    <span class="badge-soft status-badge" data-bg="{{ o.status_bg|default:'rgba(11,102,255,0.06)' }}" data-color="{{ o.status_color|default:'var(--accent)' }}">
+                      {{ o.status|default:"—" }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="actions" role="group" aria-label="عملیات">
+                      <a href="{{ o.view_url|default:'#' }}" class="btn-icon" aria-label="مشاهده"><i data-feather="eye" aria-hidden="true"></i></a>
+                      <a href="{{ o.edit_url|default:'#' }}" class="btn-icon" aria-label="ویرایش"><i data-feather="edit-2" aria-hidden="true"></i></a>
+
+                      <form action="{{ o.delete_url|default:'#' }}" method="post" class="form-inline" aria-label="حذف">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-icon danger" aria-label="حذف"><i data-feather="trash-2" aria-hidden="true"></i></button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" class="empty-state">هیچ سفارشی ثبت نشده است</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel-footer" aria-hidden="true">
+        {% if recent_orders.has_other_pages %}
+          <nav aria-label="صفحه‌بندی">
+            <ul class="pagination-list" style="display:flex;gap:12px;align-items:center;justify-content:flex-end;">
+              {% if recent_orders.has_previous %}
+                <li><a href="?page={{ recent_orders.previous_page_number }}" class="link-muted">قبلی</a></li>
+              {% endif %}
+              <li class="link-muted">صفحه {{ recent_orders.number }} از {{ recent_orders.paginator.num_pages }}</li>
+              {% if recent_orders.has_next %}
+                <li><a href="?page={{ recent_orders.next_page_number }}" class="link-muted">بعدی</a></li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Right side widgets -->
+    <aside class="side-stack" role="complementary" aria-label="ویجت‌ها">
+
+      <!-- Notifications -->
+      <section class="panel" aria-labelledby="notifications-heading">
+        <div class="panel-head">
+          <h3 id="notifications-heading" class="panel-title">اعلان‌ها</h3>
+          <div class="panel-actions"><a href="#" class="link-muted">علامت‌گذاری همه</a></div>
+        </div>
+
+        <div class="timeline" role="list">
+          {% if notifications %}
+            {% for n in notifications %}
+              <article class="timeline-item" role="listitem">
+                <div class="timeline-icon" aria-hidden="true"><i data-feather="{{ n.icon|default:'bell' }}"></i></div>
+                <div>
+                  <div class="timeline-time">{{ n.time|default:"همین حالا" }}</div>
+                  <div class="timeline-desc">{{ n.text }}</div>
+                  <div class="timeline-link"><a href="{{ n.link|default:'#' }}" class="link-muted">مشاهده</a></div>
+                </div>
+              </article>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">اعلانی وجود ندارد</div>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Reminders -->
+      <section class="panel" aria-labelledby="reminders-heading">
+        <div class="panel-head">
+          <h3 id="reminders-heading" class="panel-title">یادآورها</h3>
+          <div class="panel-actions"><a href="#" class="link-muted">افزودن</a></div>
+        </div>
+
+        <div class="tasks" role="list">
+          {% if reminders %}
+            {% for r in reminders %}
+              <div class="task-item" role="listitem">
+                <div>
+                  <label class="task-label">
+                    <input type="checkbox" class="task-checkbox" aria-label="علامت‌گذاری انجام شده">
+                    <div>
+                      <div class="task-title">{{ r.text }}</div>
+                      <div class="task-meta">تا: {{ r.due|default:"—" }}</div>
+                    </div>
+                  </label>
+                </div>
+                <div class="task-progress" aria-hidden="true">
+                  <div class="task-progress__track" aria-hidden="true">
+                    <div class="fill" aria-hidden="true"></div>
+                  </div>
+                </div>
+                <div class="task-priority" aria-hidden="true"></div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">هیچ یادآوری‌ای تنظیم نشده</div>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Quick summary -->
+      <section class="panel" aria-labelledby="summary-heading">
+        <div class="panel-head">
+          <h3 id="summary-heading" class="panel-title">خلاصه سریع</h3>
+        </div>
+        <div class="summary-grid" role="region" aria-label="خلاصه سریع">
+          <div class="summary-item">
+            <div class="summary-label">در حال انجام</div>
+            <div class="summary-value persianize">{{ totals.in_progress_orders|default:"0" }}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">مشتریان</div>
+            <div class="summary-value persianize">{{ totals.customers_count|default:"0" }}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">سفارشات</div>
+            <div class="summary-value persianize">{{ totals.total_orders|default:"0" }}</div>
+          </div>
+        </div>
+      </section>
+
+    </aside>
+  </section>
+
+  <!-- Bottom row: Inventory + Sales -->
+  <section class="bottom-row" aria-label="موجودی و فروش">
+
+    <!-- Inventory -->
+    <section class="panel inventory-panel" aria-labelledby="inventory-heading">
+      <div class="panel-head">
+        <h3 id="inventory-heading" class="panel-title">موجودی کالاها</h3>
+        <div class="panel-actions"><a href="{{ urls.warehouse_index|default:'#' }}" class="link-muted">مدیریت انبار</a></div>
+      </div>
+
+      <div class="inventory-list" role="list">
+        {% if inventory %}
+          {% for item in inventory %}
+            <div class="inventory-item" role="listitem">
+              <div>
+                <div class="inventory-name">{{ item.name|default:"نام کالا" }}</div>
+                <div class="inventory-sku">{{ item.sku|default:"—" }} • حداقل: {{ item.threshold|default:"—" }}</div>
+              </div>
+              <div class="inventory-stats">
+                <div class="inventory-qty">موجودی: <strong class="persianize">{{ item.qty|default:"0" }}</strong></div>
+                <div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" class="inventory-fill" aria-label="نوار موجودی">
+                  <div class="bar ed-inventory__fill-bar" data-qty="{{ item.qty|default:0 }}" data-threshold="{{ item.threshold|default:1 }}"></div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">دادهٔ موجودی در دسترس نیست</div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Sales -->
+    <section class="panel sales-panel" aria-labelledby="sales-heading">
+      <div class="panel-head">
+        <h3 id="sales-heading" class="panel-title">خلاصه فروش</h3>
+        <div class="panel-actions">
+          <div class="link-muted">آخرین: {{ sales.updated_at|default:"همین حالا" }}</div>
+        </div>
+      </div>
+
+      <div class="chart-wrap" role="region" aria-label="نمودار فروش">
+        {% if sales and sales.labels and sales.values %}
+          <canvas id="salesChart" width="600" height="260" aria-label="نمودار فروش"></canvas>
+        {% else %}
+          <div class="empty-state">دادهٔ فروش موجود نیست</div>
+        {% endif %}
+      </div>
+
+      <div class="panel-footer" aria-hidden="true" style="display:flex;justify-content:space-between;">
+        <div class="link-muted">مجموع فروش: <strong class="persianize">{{ sales.total|default:"0" }}</strong></div>
+        <div class="link-muted">رشد: <strong class="{% if sales.change and sales.change|slice:":1" == '+' %}text-success{% else %}text-danger{% endif %}">{{ sales.change|default:"0%" }}</strong></div>
+      </div>
+    </section>
+
+  </section>
+
+</main>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+/* Dashboard JS — organized and non-destructive
+   - Jalali live clock
+   - Persian digit rendering for elements with .persianize
+   - Inventory fill bars initialization
+   - Feather icons init
+   - Chart.js dynamic load and render (safe template injection)
+*/
+
+(function(){
+  'use strict';
+
+  const PERSIAN_DIGITS = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+
+  function toPersianDigits(s){
+    return String(s).replace(/\d/g, d => PERSIAN_DIGITS[d]);
+  }
+
+  function persianizeAll(){
+    document.querySelectorAll('.persianize').forEach(el => {
+      el.childNodes.forEach(node => {
+        if(node.nodeType === Node.TEXT_NODE && /\d/.test(node.nodeValue)){
+          node.nodeValue = toPersianDigits(node.nodeValue);
+        }
+      });
+    });
+  }
+
+  /* Jalali conversion */
+  function g2j(gy, gm, gd){
+    const g_d_m = [0,31,59,90,120,151,181,212,243,273,304,334];
+    let jy, jm, jd;
+    let gy2 = (gm > 2) ? (gy + 1) : gy;
+    let days = 355666 + (365 * gy) + Math.floor((gy2 + 3) / 4) - Math.floor((gy2 + 99) / 100) + Math.floor((gy2 + 399) / 400) + gd + g_d_m[gm - 1];
+    jy = -1595 + (33 * Math.floor(days / 12053));
+    days = days % 12053;
+    jy += 4 * Math.floor(days / 1461);
+    days = days % 1461;
+    if (days > 365) {
+      jy += Math.floor((days - 1) / 365);
+      days = (days - 1) % 365;
+    }
+    if (days < 186) {
+      jm = 1 + Math.floor(days / 31);
+      jd = 1 + (days % 31);
+    } else {
+      days -= 186;
+      jm = 7 + Math.floor(days / 30);
+      jd = 1 + (days % 30);
+    }
+    return { jy, jm, jd };
+  }
+
+  function pad2(n){ return n < 10 ? '0' + n : String(n); }
+
+  function updateJalaliClock(){
+    const now = new Date();
+    const gY = now.getFullYear(), gM = now.getMonth() + 1, gD = now.getDate();
+    const j = g2j(gY, gM, gD);
+    const hh = pad2(now.getHours()), mm = pad2(now.getMinutes()), ss = pad2(now.getSeconds());
+    const dateStr = `${j.jy}/${pad2(j.jm)}/${pad2(j.jd)}`;
+    const timeStr = `${hh}:${mm}:${ss}`;
+    const dateEl = document.getElementById('jalali-date');
+    const timeEl = document.getElementById('jalali-time');
+    if(dateEl) dateEl.textContent = toPersianDigits(dateStr);
+    if(timeEl) timeEl.textContent = toPersianDigits(timeStr);
+  }
+
+  function initFeather(){
+    if(window.feather){
+      try { feather.replace({ 'stroke-width': 1.4 }); }
+      catch(e){ console.warn('feather init failed', e); }
+    }
+  }
+
+  function initInventoryBars(){
+    document.querySelectorAll('.ed-inventory__fill-bar, .bar').forEach(bar => {
+      const qty = parseFloat(bar.getAttribute('data-qty')) || 0;
+      const threshold = parseFloat(bar.getAttribute('data-threshold')) || 1;
+      let pct = Math.round((qty / Math.max(threshold,1)) * 100);
+      pct = Math.max(0, Math.min(100, pct));
+      bar.style.width = pct + '%';
+      const parent = bar.closest('[role="progressbar"]');
+      if(parent) parent.setAttribute('aria-valuenow', pct);
+    });
+  }
+
+  function colorizeStatusBadges(){
+    document.querySelectorAll('.status-badge').forEach(b => {
+      const bg = b.getAttribute('data-bg');
+      const color = b.getAttribute('data-color');
+      if(bg) b.style.background = bg;
+      if(color) b.style.color = color;
+    });
+  }
+
+  function loadChart(){
+    const canvas = document.getElementById('salesChart');
+    if(!canvas) return;
+    const src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js";
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = function(){
+      try {
+        const ctx = canvas.getContext('2d');
+        {% if sales and sales.labels and sales.values %}
+        const labels = {{ sales.labels|safe }};
+        const values = {{ sales.values|safe }};
+        {% else %}
+        const labels = [];
+        const values = [];
+        {% endif %}
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-emerald') || '#0b8f6b';
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'فروش',
+              data: values,
+              borderColor: accent.trim(),
+              backgroundColor: 'rgba(11,102,80,0.06)',
+              tension: 0.25,
+              pointRadius: 3,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: '#9aa4b2' } },
+              y: { grid: { color: 'rgba(15,23,36,0.04)' }, ticks: { color: '#9aa4b2' } }
+            },
+            interaction: { mode: 'index', intersect: false }
+          }
+        });
+      } catch(e){ console.error('Chart error', e); }
+    };
+    document.head.appendChild(s);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    // Live clock
+    updateJalaliClock();
+    setInterval(updateJalaliClock, 1000);
+
+    // Persianize numbers
+    persianizeAll();
+
+    // Feather icons
+    initFeather();
+
+    // Inventory bars and badges
+    initInventoryBars();
+    colorizeStatusBadges();
+
+    // Load sales chart if present
+    loadChart();
+  });
+
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends "core/base.html" %}
+
+{% block title %}موجودی انبار {{ warehouse.name }} - حاما پارچه{% endblock %}
+{% block page_title %}موجودی کالا در انبار {{ warehouse.name }}{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'warehouse:warehouse_list' %}">مدیریت انبارها</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'warehouse:warehouse_detail' warehouse.id %}">انبار {{ warehouse.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">موجودی کالاها</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up">
+
+    <!-- بخش بالایی شامل دکمه‌های بازگشت و فیلتر -->
+    <div class="card-custom mb-4 p-3 border-0 shadow-sm bg-white">
+        <div class="row align-items-center g-3">
+            <div class="col-md-6 d-flex align-items-center gap-3">
+                <a href="{% url 'warehouse:warehouse_detail' warehouse.id %}" class="btn btn-outline-soft d-inline-flex align-items-center gap-1.5 py-2 px-3 text-xs fw-bold">
+                    <i data-feather="arrow-right" style="width: 15px; height: 15px;"></i> بازگشت به داشبورد انبار
+                </a>
+                <div class="h-100 border-start d-none d-md-block" style="width: 1px; height: 24px; background: #e2e8f0;"></div>
+                <h5 class="fw-bold m-0 text-gray-900 d-none d-md-block" style="font-size: 1rem;">گزارش فیزیکی موجودی اقلام</h5>
+            </div>
+            <div class="col-md-6">
+                <div class="position-relative">
+                    <i data-feather="search" class="text-muted position-absolute" style="right: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px;"></i>
+                    <input type="text" id="searchInput" class="form-control" placeholder="جستجو در بین کالاها و محصولات..." style="padding-right: 40px; font-size: 0.85rem; border-radius: 8px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول نمایش موجودی -->
+    <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="stockTable" style="border: none;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نام کالا / محصول</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">موجودی فعلی</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">حداقل مجاز (کف)</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نقطه سفارش مجدد</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">وضعیت انبار</th>
+                        <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 180px;">عملیات سریع</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in stock_items %}
+                    <tr class="stock-row">
+                        <!-- نام کالا -->
+                        <td class="ps-4 fw-bold text-gray-800 text-xs search-key">{{ item.product.name }}</td>
+                        
+                        <!-- موجودی فعلی -->
+                        <td class="text-center font-mono fw-bold text-xs">
+                            <span class="px-2.5 py-1 bg-light rounded-2 border text-dark">{{ item.quantity|floatformat:0 }}</span>
+                        </td>
+                        
+                        <!-- حداقل -->
+                        <td class="text-center font-mono text-xs text-muted">{{ item.min_stock|floatformat:0 }}</td>
+                        
+                        <!-- نقطه سفارش -->
+                        <td class="text-center font-mono text-xs text-muted">{{ item.reorder_point|floatformat:0 }}</td>
+                        
+                        <!-- وضعیت -->
+                        <td class="text-center text-xs">
+                            {% if "تمام شده" in item.reorder_status %}
+                                <span class="badge bg-danger text-white rounded-3 px-2 py-1 text-xxs">تمام شده</span>
+                            {% elif "کمبود" in item.reorder_status %}
+                                <span class="badge bg-warning text-dark rounded-3 px-2 py-1 text-xxs">کمبود موجودی</span>
+                            {% elif "نقطه سفارش" in item.reorder_status %}
+                                <span class="badge bg-info text-white rounded-3 px-2 py-1 text-xxs">نیاز به سفارش</span>
+                            {% else %}
+                                <span class="badge bg-success text-white rounded-3 px-2 py-1 text-xxs">موجودی کافی</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- عملیات سریع -->
+                        <td class="pe-4 text-center">
+                            <div class="d-flex justify-content-center gap-1.5">
+                                <a href="{% url 'warehouse:stock_in' warehouse.id %}?product_id={{ item.product.id }}" class="btn btn-xs btn-success d-inline-flex align-items-center gap-1 text-xxs py-1 px-2.5 rounded-2 border-0 text-white" style="background: #10b981;">
+                                    <i data-feather="plus" style="width: 12px; height: 12px;"></i> ورود کالا
+                                </a>
+                                <a href="{% url 'warehouse:stock_out' warehouse.id %}?product_id={{ item.product.id }}" class="btn btn-xs btn-danger d-inline-flex align-items-center gap-1 text-xxs py-1 px-2.5 rounded-2 border-0 text-white">
+                                    <i data-feather="minus" style="width: 12px; height: 12px;"></i> خروج کالا
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <div class="mb-2">
+                                <i data-feather="box" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+                            </div>
+                            <h6 class="fw-bold m-0 text-xs text-dark">هیچ اقلامی در این انبار یافت نشد</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr id="noResultsRow" style="display: none;">
+                        <td colspan="6" class="text-center text-muted py-4 text-xs">
+                            موردی منطبق با جستجوی شما یافت نشد.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById("searchInput");
+        const stockRows = document.querySelectorAll(".stock-row");
+        const noResultsRow = document.getElementById("noResultsRow");
+
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const query = searchInput.value.toLowerCase().trim();
+                let hasResults = false;
+
+                stockRows.forEach(row => {
+                    const searchKey = row.querySelector(".search-key").textContent.toLowerCase();
+                    if (searchKey.includes(query)) {
+                        row.style.display = "";
+                        hasResults = true;
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                if (hasResults || query === "") {
+                    noResultsRow.style.display = "none";
+                } else {
+                    noResultsRow.style.display = "";
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

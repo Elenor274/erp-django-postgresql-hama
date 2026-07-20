@@ -1,0 +1,347 @@
+{% extends 'core/base.html' %}
+
+{% block title %}شناسنامه نت {{ record.maintenance_code }} - حاما پارچه{% endblock %}
+{% block page_title %}شناسنامه نگهداری و تعمیرات (نت){% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'production:maintenance_list' %}">نگهداری و تعمیرات</a></li>
+  <li class="breadcrumb-item active" aria-current="page">درخواست {{ record.maintenance_code }}</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<!-- دکمه‌های کنترلی بالا -->
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+  <a href="{% url 'production:maintenance_list' %}" class="btn btn-outline-soft d-inline-flex align-items-center">
+    <i data-feather="arrow-right" class="me-1" style="width: 16px; height: 16px;"></i> بازگشت به لیست نت
+  </a>
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn btn-outline-dark d-inline-flex align-items-center">
+      <i data-feather="printer" class="me-1" style="width: 16px; height: 16px;"></i> چاپ شناسنامه / حواله کار
+    </button>
+    <a href="{% url 'production:maintenance_edit' record.pk %}" class="btn btn-warning d-inline-flex align-items-center text-decoration-none">
+      <i data-feather="edit-2" class="me-1" style="width: 16px; height: 16px;"></i> ویرایش و ثبت گزارش کار
+    </a>
+  </div>
+</div>
+
+<!-- کارت شناسنامه کار تعمیرات (شبیه‌ساز برگه صنعتی فیزیکی) -->
+<div class="card-custom bg-white border shadow-sm p-4 rounded-4 fade-in-up print-area">
+  
+  <!-- هدر شناسنامه -->
+  <div class="d-flex justify-content-between align-items-center border-bottom pb-4 mb-4">
+    <div class="d-flex align-items-center">
+      <div class="p-3 bg-primary-subtle rounded-3 text-primary me-3 no-print">
+        <i data-feather="file-text" style="width: 32px; height: 32px;"></i>
+      </div>
+      <div>
+        <h1 class="h4 mb-1 font-sans font-bold text-gray-900">فرم ثبت و گزارش اقدامات فنی نگهداری و تعمیرات (نت)</h1>
+        <p class="text-muted text-xs mb-0">شرکت ریسندگی و بافندگی حاما پارچه - واحد مدیریت نگهداری</p>
+      </div>
+    </div>
+    <div class="text-end">
+      <div class="font-mono text-sm text-gray-900">شماره: <strong class="text-danger">{{ record.maintenance_code }}</strong></div>
+      <div class="font-sans text-xs text-muted mt-1">تاریخ اعلام: <span>{{ record.date_jalali }}</span></div>
+    </div>
+  </div>
+
+  <!-- مرحله‌نما (Process Flow / Status Indicator) -->
+  <div class="row mb-5 no-print">
+    <div class="col-12">
+      <div class="card bg-light border-0 rounded-4 p-4">
+        <h4 class="text-xs text-muted font-sans font-medium mb-3">روند اجرایی کار تعمیرات:</h4>
+        <div class="d-flex justify-content-around align-items-center text-center">
+          <div class="d-flex flex-column align-items-center">
+            <div class="rounded-circle d-flex align-items-center justify-content-center bg-success text-white" style="width: 40px; height: 40px;">
+              <i data-feather="bell" style="width: 18px; height: 18px;"></i>
+            </div>
+            <span class="text-xs font-medium text-success mt-2">۱. ثبت درخواست</span>
+            <span class="text-xxs text-muted mt-1">{{ record.date_jalali }} - {{ record.notification_time|time:"H:i" }}</span>
+          </div>
+          <div class="flex-grow-1 border-top border-2 border-success mx-2" style="max-width: 80px;"></div>
+          <div class="d-flex flex-column align-items-center">
+            <div class="rounded-circle d-flex align-items-center justify-content-center {% if record.start_date %}bg-success text-white{% else %}bg-secondary-subtle text-muted{% endif %}" style="width: 40px; height: 40px;">
+              <i data-feather="tool" style="width: 18px; height: 18px;"></i>
+            </div>
+            <span class="text-xs font-medium {% if record.start_date %}text-success{% else %}text-muted{% endif %} mt-2">۲. شروع تعمیرات</span>
+            <span class="text-xxs text-muted mt-1">{% if record.start_date %}{{ record.start_date_jalali }} - {{ record.start_time|time:"H:i" }}{% else %}در انتظار...{% endif %}</span>
+          </div>
+          <div class="flex-grow-1 border-top border-2 {% if record.end_date %}border-success{% else %}border-dashed{% endif %} mx-2" style="max-width: 80px;"></div>
+          <div class="d-flex flex-column align-items-center">
+            <div class="rounded-circle d-flex align-items-center justify-content-center {% if record.end_date %}bg-success text-white{% else %}bg-secondary-subtle text-muted{% endif %}" style="width: 40px; height: 40px;">
+              <i data-feather="check-square" style="width: 18px; height: 18px;"></i>
+            </div>
+            <span class="text-xs font-medium {% if record.end_date %}text-success{% else %}text-muted{% endif %} mt-2">۳. اتمام و گزارش کار</span>
+            <span class="text-xxs text-muted mt-1">{% if record.end_date %}{{ record.end_date_jalali }} - {{ record.end_time|time:"H:i" }}{% else %}در انتظار...{% endif %}</span>
+          </div>
+          <div class="flex-grow-1 border-top border-2 {% if record.manager_approved and record.requester_approved %}border-success{% else %}border-dashed{% endif %} mx-2" style="max-width: 80px;"></div>
+          <div class="d-flex flex-column align-items-center">
+            <div class="rounded-circle d-flex align-items-center justify-content-center {% if record.manager_approved and record.requester_approved %}bg-success text-white{% else %}bg-secondary-subtle text-muted{% endif %}" style="width: 40px; height: 40px;">
+              <i data-feather="award" style="width: 18px; height: 18px;"></i>
+            </div>
+            <span class="text-xs font-medium {% if record.manager_approved and record.requester_approved %}text-success{% else %}text-muted{% endif %} mt-2">۴. تاییدیه نهایی</span>
+            <span class="text-xxs text-muted mt-1">
+              {% if record.manager_approved and record.requester_approved %}تایید شده{% else %}در انتظار تایید{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- بخش اول: اطلاعات پایه درخواست -->
+  <h2 class="h6 text-primary border-bottom pb-2 mb-3 font-sans font-bold d-flex align-items-center">
+    <i data-feather="info" class="me-1 no-print" style="width: 18px; height: 18px;"></i> بخش اول: شناسنامه تجهیز و جزئیات خرابی
+  </h2>
+  
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">دستگاه / تجهیز</label>
+        <div class="font-sans font-bold text-gray-900">{{ record.machine.name }}</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">کد دستگاه</label>
+        <div class="font-mono font-bold text-gray-900">{{ record.machine.machine_code }}</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">محل استقرار</label>
+        <div class="font-sans font-medium text-gray-900">{{ record.location|default:"-" }}</div>
+      </div>
+    </div>
+    
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">اپراتور مسئول</label>
+        <div class="font-sans font-medium text-gray-900">{{ record.operator.first_name }} {{ record.operator.last_name }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">واحد درخواست‌کننده</label>
+        <div class="font-sans font-medium text-gray-900">{{ record.get_requester_unit_display }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">ساعت اعلام خرابی</label>
+        <div class="font-mono font-medium text-gray-900">{{ record.notification_time|time:"H:i" }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">توقف تولید</label>
+        <div>
+          {% if record.has_stoppage %}
+          <span class="badge bg-danger rounded-pill px-3">دارد (توقف خط تولید)</span>
+          {% else %}
+          <span class="badge bg-success rounded-pill px-3">ندارد (کارکرد موازی)</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- بخش دوم: جزئیات عیب‌یابی و برنامه‌ریزی -->
+  <h2 class="h6 text-primary border-bottom pb-2 mb-3 font-sans font-bold d-flex align-items-center mt-4">
+    <i data-feather="settings" class="me-1 no-print" style="width: 18px; height: 18px;"></i> بخش دوم: تشخیص فنی و عیب‌یابی اولیه
+  </h2>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">نوع فعالیت تعمیراتی</label>
+        <div class="font-sans font-bold">{{ record.get_repair_type_display }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">مهلت مجاز انجام</label>
+        <div class="font-sans font-medium text-gray-900">{{ record.deadline_date_jalali }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">زمان تقریبی تعمیرات</label>
+        <div class="font-sans font-medium text-gray-900">{{ record.estimated_days }} روز</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">گروه اجرایی تعمیر</label>
+        <div class="font-sans font-medium text-gray-900">{{ record.execution_group }}</div>
+      </div>
+    </div>
+
+    <!-- حالت‌های خرابی -->
+    <div class="col-12">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-2 block">حالت‌های عیوب تشخیص داده شده (تیک‌خورده):</label>
+        <div class="d-flex flex-wrap gap-3">
+          <div class="d-flex align-items-center text-xs">
+            <span class="me-1">{% if record.failure_electrical %}✅{% else %}❌{% endif %}</span>
+            <span class="font-medium {% if record.failure_electrical %}text-gray-900 font-bold{% else %}text-muted{% endif %}">خرابی سیستم برقی / کنترلر</span>
+          </div>
+          <div class="d-flex align-items-center text-xs">
+            <span class="me-1">{% if record.failure_mechanical %}✅{% else %}❌{% endif %}</span>
+            <span class="font-medium {% if record.failure_mechanical %}text-gray-900 font-bold{% else %}text-muted{% endif %}">خرابی مکانیکی / گیربکس / شفت</span>
+          </div>
+          <div class="d-flex align-items-center text-xs">
+            <span class="me-1">{% if record.failure_hydraulic %}✅{% else %}❌{% endif %}</span>
+            <span class="font-medium {% if record.failure_hydraulic %}text-gray-900 font-bold{% else %}text-muted{% endif %}">نشت یا افت فشار هیدرولیک / پنوماتیک</span>
+          </div>
+          <div class="d-flex align-items-center text-xs">
+            <span class="me-1">{% if record.failure_utilities %}✅{% else %}❌{% endif %}</span>
+            <span class="font-medium {% if record.failure_utilities %}text-gray-900 font-bold{% else %}text-muted{% endif %}">تاسیسات / دیگ بخار / باد سرد / لوله‌کشی</span>
+          </div>
+          <div class="d-flex align-items-center text-xs">
+            <span class="me-1">{% if record.failure_other %}✅{% else %}❌{% endif %}</span>
+            <span class="font-medium {% if record.failure_other %}text-gray-900 font-bold{% else %}text-muted{% endif %}">سایر موارد / عیب‌یابی ناشناخته</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- امکان تعمیرات داخل -->
+    <div class="col-12">
+      <div class="p-3 rounded-3 {% if record.internal_repair_possible %}bg-success-subtle text-success-emphasis border border-success-subtle{% else %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% endif %}">
+        <div class="d-flex align-items-center gap-2">
+          <i data-feather="{% if record.internal_repair_possible %}check-circle{% else %}alert-circle{% endif %}" style="width: 18px; height: 18px;"></i>
+          <span class="font-sans font-bold text-xs">امکان رفع عیب در کارخانه:</span>
+          <span class="text-xs">{% if record.internal_repair_possible %}بله، امکان تعمیر با اتکا به تیم فنی داخلی وجود دارد.{% else %}خیر، نیاز به اعزام کارشناس یا تعمیرکار خارجی وجود دارد.{% endif %}</span>
+        </div>
+        {% if not record.internal_repair_possible and record.external_repair_reason %}
+        <div class="text-xs mt-2 p-2 bg-white rounded text-gray-700">
+          <strong>علت ارجاع خارجی:</strong> {{ record.external_repair_reason }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- بخش سوم: گزارش اتمام و جزئیات تعمیرات -->
+  <h2 class="h6 text-primary border-bottom pb-2 mb-3 font-sans font-bold d-flex align-items-center mt-4">
+    <i data-feather="check-circle" class="me-1 no-print" style="width: 18px; height: 18px;"></i> بخش سوم: گزارش تفصیلی عملیات و اتمام تعمیرات
+  </h2>
+
+  {% if record.end_date %}
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">تاریخ و ساعت شروع کار</label>
+        <div class="font-sans font-medium text-gray-900">{{ record.start_date_jalali }} - {{ record.start_time|time:"H:i"|default:"-" }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">تاریخ و ساعت پایان کار</label>
+        <div class="font-sans font-medium text-gray-900">{{ record.end_date_jalali }} - {{ record.end_time|time:"H:i"|default:"-" }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">مجموع ساعات توقف تولید</label>
+        <div class="font-mono font-bold text-danger">{{ record.total_stoppage_hours }} ساعت</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="p-3 bg-light rounded-3">
+        <label class="text-xs text-muted mb-1 block">تاریخ چک‌آپ بعدی (PM)</label>
+        <div class="font-sans font-medium text-gray-900">
+          {% if record.next_checkup_date %}
+            {{ record.next_checkup_date_jalali }} - {{ record.next_checkup_time|time:"H:i"|default:"-" }}
+          {% else %}
+            ثبت نشده
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- شرح فعالیت‌ها -->
+    <div class="col-md-6">
+      <div class="p-3 bg-light rounded-3 h-100">
+        <label class="text-xs text-muted mb-1 block">شرح کامل کارهای انجام شده</label>
+        <div class="text-xs text-gray-800" style="white-space: pre-line;">{{ record.activity_description|default:"شرح اقداماتی ثبت نشده است." }}</div>
+      </div>
+    </div>
+    <!-- قطعات مصرفی -->
+    <div class="col-md-6">
+      <div class="p-3 bg-light rounded-3 h-100">
+        <label class="text-xs text-muted mb-1 block">قطعات یدکی و مواد مصرفی</label>
+        <div class="text-xs text-gray-800" style="white-space: pre-line;">{{ record.consumables_used|default:"بدون قطعات مصرفی" }}</div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-warning text-center rounded-3 my-4">
+    <div class="font-sans font-bold text-xs"><i data-feather="clock" class="me-1"></i> کار تعمیراتی همچنان در جریان است</div>
+    <p class="text-xxs text-muted mt-1 mb-0">هنوز گزارش اتمام برای این درخواست ثبت نشده است. پس از رفع عیب، دکمه «ثبت گزارش کار» را در بالای صفحه کلیک کنید.</p>
+  </div>
+  {% endif %}
+
+  <!-- امضاها و تاییدات فیزیکی / دیجیتالی -->
+  <div class="row mt-5 pt-4 border-top">
+    <div class="col-md-4 text-center">
+      <div class="text-xs text-muted mb-4">درخواست‌کننده (واحد متقاضی)</div>
+      {% if record.requester_approved %}
+      <div class="badge bg-success-subtle text-success p-2 rounded-3 text-xs mb-3">
+        <i data-feather="check" style="width:14px;"></i> تایید شده دیجیتالی
+      </div>
+      {% else %}
+      <div class="text-xs text-danger italic mb-3">در انتظار امضا و تایید واحد متقاضی</div>
+      {% endif %}
+      <div class="border-top border-dashed w-50 mx-auto mt-4 pt-1 text-xxs text-muted">امضاء و اثر انگشت</div>
+    </div>
+    <div class="col-md-4 text-center">
+      <div class="text-xs text-muted mb-4">تیم فنی اجرایی (سرپرست نت)</div>
+      {% if record.manager_approved %}
+      <div class="badge bg-success-subtle text-success p-2 rounded-3 text-xs mb-3">
+        <i data-feather="check" style="width:14px;"></i> تایید شده دیجیتالی
+      </div>
+      {% else %}
+      <div class="text-xs text-danger italic mb-3">در انتظار تایید سرپرست نگهداری</div>
+      {% endif %}
+      <div class="border-top border-dashed w-50 mx-auto mt-4 pt-1 text-xxs text-muted">امضاء و اثر انگشت</div>
+    </div>
+    <div class="col-md-4 text-center">
+      <div class="text-xs text-muted mb-4">بازرسی نهایی و مدیریت کارخانه</div>
+      <div class="text-xs text-muted italic mb-3">کنترل کیفی فرآیند تجهیزات</div>
+      <div class="border-top border-dashed w-50 mx-auto mt-4 pt-1 text-xxs text-muted">امضاء و اثر انگشت</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- استایل‌های بهینه‌سازی چاپ فیزیکی -->
+<style>
+  @media print {
+    body {
+      background-color: white !important;
+      color: black !important;
+    }
+    .no-print {
+      display: none !important;
+    }
+    .print-area {
+      border: 0 !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+    .card-custom {
+      border: 0 !important;
+      box-shadow: none !important;
+    }
+    .badge {
+      border: 1px solid #ccc !important;
+      color: black !important;
+      background: none !important;
+    }
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "core/base.html" %}
+
+{% block title %}کاتالوگ محصولات - حاما پارچه{% endblock %}
+{% block page_title %}مدیریت محصولات و شناسنامه کالا{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item active" aria-current="page">کاتالوگ محصولات</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up">
+
+    <!-- بنر راهنمای بالای صفحه -->
+    <div class="card-custom mb-4 p-4 position-relative overflow-hidden border-0 shadow-sm" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-right: 4px solid var(--accent) !important;">
+        <div class="position-absolute" style="left: -15px; top: -15px; opacity: 0.05; pointer-events: none;">
+            <i data-feather="package" style="width: 140px; height: 140px; stroke-width: 1;"></i>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="fw-bold text-gray-900 mb-1.5" style="font-size: 1.15rem; letter-spacing: -0.02em;">شناسنامه و کاتالوگ یکپارچه محصولات</h5>
+                <p class="text-muted text-xs mb-0 leading-relaxed">تعریف محصولات، پارچه‌های خام و تکمیل شده به همراه کدهای شناسایی منحصربه‌فرد، موجودی کل، و نرخ‌های محاسباتی.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex flex-wrap justify-content-md-end gap-2">
+                <a href="{% url 'products:group_list' %}" class="btn btn-outline-soft d-inline-flex align-items-center gap-1.5 py-2 px-3 rounded-3 text-xs fw-bold">
+                    <i data-feather="layers" style="width: 15px; height: 15px;"></i> مدیریت گروه‌های کالا
+                </a>
+                <a href="{% url 'products:product_create' %}" class="btn btn-primary text-white d-inline-flex align-items-center gap-1.5 py-2 px-3.5 rounded-3 border-0 text-xs fw-bold font-sans" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);">
+                    <i data-feather="plus-circle" style="width: 15px; height: 15px;"></i> تعریف محصول جدید
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- فیلتر و جستجوی کالا -->
+    <div class="card-custom mb-4 p-3 border-0 shadow-sm bg-white">
+        <form method="get" class="row g-3 align-items-center">
+            <!-- فیلد جستجو -->
+            <div class="col-md-5 col-sm-12">
+                <div class="position-relative">
+                    <i data-feather="search" class="text-muted position-absolute" style="right: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px;"></i>
+                    <input type="text" name="q" value="{{ query|default:'' }}" class="form-control" placeholder="جستجوی نام کالا یا کد محصول..." style="padding-right: 40px; font-size: 0.85rem; border-radius: 8px;">
+                </div>
+            </div>
+
+            <!-- فیلتر گروه کالا -->
+            <div class="col-md-4 col-sm-8">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-nowrap text-muted text-xs">گروه کالا:</span>
+                    <select name="group" class="form-select font-sans text-xs" style="border-radius: 8px;" onchange="this.form.submit()">
+                        <option value="">همه گروه‌ها</option>
+                        {% for g in groups %}
+                            <option value="{{ g.id }}" {% if group_filter == g.id|stringformat:"s" %}selected{% endif %}>
+                                {{ g.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- دکمه اعمال سریع -->
+            <div class="col-md-3 col-sm-4 text-end">
+                <button type="submit" class="btn btn-outline-soft w-100 py-2 text-xs fw-bold">اعمال فیلترها</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- جدول محصولات -->
+    <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="border: none;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">کد کالا</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">گروه کالا</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">شرح کالا</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">واحد</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">موجودی اولیه</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">مجموع خروجی</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">موجودی واقعی</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">قیمت واحد (ریال)</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">تاریخ ایجاد</th>
+                        <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 180px;">عملیات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for p in page_obj %}
+                    <tr>
+                        <!-- کد کالا -->
+                        <td class="ps-4 font-mono text-xs text-muted fw-bold">#{{ p.code }}</td>
+                        
+                        <!-- گروه کالا -->
+                        <td>
+                            <span class="badge bg-secondary-subtle text-secondary px-2 py-1 rounded-2 text-xxs fw-bold">
+                                {{ p.group.name }}
+                            </span>
+                        </td>
+                        
+                        <!-- شرح کالا -->
+                        <td>
+                            <a href="{% url 'products:product_detail' p.id %}" class="fw-bold text-gray-900 text-xs text-decoration-none hover-accent">
+                                {{ p.name }}
+                            </a>
+                        </td>
+                        
+                        <!-- واحد -->
+                        <td class="text-center text-xs text-muted">{{ p.unit }}</td>
+                        
+                        <!-- موجودی اولیه -->
+                        <td class="text-center font-mono text-xs">{{ p.initial_stock|floatformat:0 }}</td>
+                        
+                        <!-- خروجی -->
+                        <td class="text-center font-mono text-xs text-danger">{{ p.stock_out|floatformat:0 }}</td>
+                        
+                        <!-- موجودی واقعی -->
+                        <td class="text-center font-mono text-xs fw-bold">
+                            <span class="px-2.5 py-1 bg-light rounded-2 border text-dark">{{ p.real_stock|floatformat:0 }}</span>
+                        </td>
+
+                        <!-- قیمت واحد -->
+                        <td class="text-center font-mono text-xs text-success fw-bold">{{ p.unit_price|floatformat:0 }}</td>
+
+                        <!-- تاریخ ایجاد -->
+                        <td class="text-center font-mono text-xs text-muted">{{ p.created_at|date:"Y/m/d" }}</td>
+
+                        <!-- عملیات -->
+                        <td class="pe-4 text-center">
+                            <div class="d-flex justify-content-center gap-1.5">
+                                <a href="{% url 'products:product_edit' p.id %}" class="btn-edit">
+                                    <i data-feather="edit-2" style="width: 12px; height: 12px;"></i> ویرایش
+                                </a>
+                                <a href="{% url 'products:product_delete_confirm' p.id %}" class="btn-delete">
+                                    <i data-feather="trash-2" style="width: 12px; height: 12px;"></i> حذف
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-5">
+                            <div class="mb-2">
+                                <i data-feather="package" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+                            </div>
+                            <h6 class="fw-bold m-0 text-xs text-dark">هیچ محصولی یافت نشد</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- صفحه بندی -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer bg-white border-top p-3 d-flex justify-content-center">
+            <nav aria-label="صفحه‌بندی">
+                <div class="d-flex align-items-center gap-2">
+                    {% if page_obj.has_previous %}
+                        <a class="btn btn-outline-soft py-1.5 px-3 text-xs fw-bold" href="?page={{ page_obj.previous_page_number }}&q={{ query|default:'' }}&sort={{ sort|default:'' }}&dir={{ direction|default:'' }}&group={{ group_filter|default:'' }}">قبلی</a>
+                    {% endif %}
+                    
+                    <span class="text-muted text-xs px-2">صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span>
+                    
+                    {% if page_obj.has_next %}
+                        <a class="btn btn-outline-soft py-1.5 px-3 text-xs fw-bold" href="?page={{ page_obj.next_page_number }}&q={{ query|default:'' }}&sort={{ sort|default:'' }}&dir={{ direction|default:'' }}&group={{ group_filter|default:'' }}">بعدی</a>
+                    {% endif %}
+                </div>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<style>
+    .hover-accent:hover {
+        color: var(--accent) !important;
+    }
+</style>
+{% endblock %}

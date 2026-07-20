@@ -1,0 +1,976 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}گزارشات و رهگیری هوشمند | حاما پارچه{% endblock %}
+{% block page_title %}گزارشات و رهگیری هوشمند{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}">
+<style>
+  :root {
+    --bg: #f8fafc;
+    --panel: #ffffff;
+    --text: #0f172a;
+    --accent: #4f46e5;
+    --accent-light: rgba(79, 70, 229, 0.08);
+    --warning: #f59e0b;
+    --warning-light: rgba(245, 158, 11, 0.08);
+    --danger: #ef4444;
+    --danger-light: rgba(239, 68, 68, 0.08);
+    --success: #10b981;
+    --success-light: rgba(16, 185, 129, 0.08);
+    --border: #e2e8f0;
+    --radius: 16px;
+    --shadow: 0 10px 30px rgba(79,70,229,0.03);
+    --muted: #64748b;
+  }
+
+  .reports-root {
+    background: var(--bg);
+    color: var(--text);
+    direction: rtl;
+    font-family: "Vazirmatn", sans-serif;
+    padding: 24px;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  /* Navigation Tabs */
+  .reports-tabs {
+    display: flex;
+    gap: 12px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 24px;
+    padding-bottom: 2px;
+    overflow-x: auto;
+  }
+
+  .reports-tab-link {
+    color: var(--muted);
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 12px 18px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    text-decoration: none !important;
+  }
+
+  .reports-tab-link i {
+    width: 18px;
+    height: 18px;
+  }
+
+  .reports-tab-link:hover {
+    color: var(--accent);
+  }
+
+  .reports-tab-link.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Cards and Metrics */
+  .grid-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .metric-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent);
+  }
+
+  .metric-card.warning::before { background: var(--warning); }
+  .metric-card.danger::before { background: var(--danger); }
+  .metric-card.success::before { background: var(--success); }
+
+  .metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .metric-card.warning .metric-icon { background: var(--warning-light); color: var(--warning); }
+  .metric-card.danger .metric-icon { background: var(--danger-light); color: var(--danger); }
+  .metric-card.success .metric-icon { background: var(--success-light); color: var(--success); }
+
+  .metric-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .metric-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-top: 4px;
+  }
+
+  /* Search Engine Section */
+  .search-terminal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+
+  .search-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .search-subtitle {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .search-form-grid {
+    display: flex;
+    gap: 12px;
+  }
+
+  .search-input-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  .search-input-wrap i {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  .search-field-custom {
+    width: 100%;
+    padding: 12px 42px 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text);
+    background: #fdfdfd;
+    transition: all 0.2s;
+  }
+
+  .search-field-custom:focus {
+    border-color: var(--accent);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    outline: none;
+  }
+
+  /* Stepper Graphic */
+  .order-track-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease;
+  }
+
+  .order-track-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .track-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .order-meta-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    font-size: 0.85rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .meta-item strong {
+    color: var(--text);
+  }
+
+  .stepper-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 32px 0;
+    position: relative;
+    padding: 0 20px;
+  }
+
+  .stepper-line {
+    position: absolute;
+    top: 24px;
+    left: 40px;
+    right: 40px;
+    height: 4px;
+    background: #e2e8f0;
+    z-index: 1;
+  }
+
+  .stepper-line-progress {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #20b2aa);
+    z-index: 1;
+    transition: width 0.4s ease;
+  }
+
+  .step-node {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 80px;
+    text-align: center;
+  }
+
+  .step-icon-bubble {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 3px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #cbd5e1;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
+
+  .step-node.completed .step-icon-bubble {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(79,70,229,0.25);
+  }
+
+  .step-node.active .step-icon-bubble {
+    background: #ffffff;
+    border-color: var(--warning);
+    color: var(--warning);
+    animation: pulseActive 1.8s infinite;
+    box-shadow: 0 4px 12px rgba(245,158,11,0.2);
+  }
+
+  @keyframes pulseActive {
+    0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+  }
+
+  .step-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #94a3b8;
+    transition: color 0.3s;
+  }
+
+  .step-node.completed .step-label { color: var(--accent); }
+  .step-node.active .step-label { color: var(--warning); font-weight: 800; }
+
+  /* Stoppage Banner Alert */
+  .stoppage-alert-box {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    animation: borderBlink 2s infinite alternate;
+  }
+
+  @keyframes borderBlink {
+    0% { border-color: #fca5a5; box-shadow: 0 0 4px rgba(239, 68, 68, 0.05); }
+    100% { border-color: #ef4444; box-shadow: 0 0 12px rgba(239, 68, 68, 0.15); }
+  }
+
+  .stoppage-badge {
+    background: #ef4444;
+    color: #ffffff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    animation: pulseDot 1s infinite alternate;
+  }
+
+  @keyframes pulseDot {
+    0% { opacity: 0.85; }
+    100% { opacity: 1; transform: scale(1.02); }
+  }
+
+  .stoppage-details {
+    flex: 1;
+  }
+
+  .stoppage-title {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #991b1b;
+    margin-bottom: 4px;
+  }
+
+  .stoppage-desc {
+    font-size: 0.85rem;
+    color: #7f1d1d;
+  }
+
+  /* Detail panels */
+  .tracking-detail-section {
+    background: rgba(79, 70, 229, 0.02);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+
+  .tracking-detail-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Responsive styling */
+  @media (max-width: 768px) {
+    .stepper-container {
+      flex-direction: column;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 0;
+    }
+    .stepper-line {
+      display: none;
+    }
+    .step-node {
+      flex-direction: row;
+      width: 100%;
+      text-align: right;
+      gap: 16px;
+    }
+    .search-form-grid {
+      flex-direction: column;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reports-root">
+  
+  <!-- Navigation Header Tabs -->
+  <div class="reports-tabs">
+    <a href="?tab=tracking&q={{ query }}" class="reports-tab-link {% if current_tab == 'tracking' %}active{% endif %}">
+      <i data-feather="search"></i>
+      <span>رهگیری هوشمند سفارش</span>
+    </a>
+    <a href="?tab=production" class="reports-tab-link {% if current_tab == 'production' %}active{% endif %}">
+      <i data-feather="cpu"></i>
+      <span>تولید و توقفات کارخانه</span>
+    </a>
+    <a href="?tab=warehouse" class="reports-tab-link {% if current_tab == 'warehouse' %}active{% endif %}">
+      <i data-feather="archive"></i>
+      <span>موجودی و هشدار انبار</span>
+    </a>
+    <a href="?tab=sales" class="reports-tab-link {% if current_tab == 'sales' %}active{% endif %}">
+      <i data-feather="trending-up"></i>
+      <span>تحلیل فروش و سفارشات</span>
+    </a>
+  </div>
+
+  <!-- TAB CONTENT: SMART TRACKING -->
+  {% if current_tab == 'tracking' %}
+    <div class="search-terminal animate-fade-in">
+      <div class="search-title">
+        <i data-feather="compass"></i>
+        <span>سامانه یکپارچه و هوشمند رهگیری سفارش</span>
+      </div>
+      <p class="search-subtitle">
+        برای ردیابی سفارش خود در تمام مراحل اداری، مالی، انبار و تولید؛ لطفاً یکی از گزینه‌های **کد سپیدار**، **کد مشتری**، **نام مشتری** یا **کد سفارش** را وارد نمایید.
+      </p>
+
+      <form method="GET" action="" class="search-form-grid">
+        <input type="hidden" name="tab" value="tracking">
+        <div class="search-input-wrap">
+          <i data-feather="search"></i>
+          <input type="text" name="q" value="{{ query }}" class="search-field-custom" placeholder="جستجو بر اساس: کد سپیدار، نام مشتری، کد مشتری یا کد سفارش...">
+        </div>
+        <button type="submit" class="btn-primary-custom" style="padding: 12px 24px;">جستجو و ردیابی</button>
+        {% if query %}
+          <a href="?tab=tracking" class="btn-outline-soft" style="padding: 12px 18px; display: inline-flex; align-items: center; justify-content: center;">پاکسازی</a>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Results Section -->
+    <h3 style="font-weight: 800; font-size: 1.05rem; margin-bottom: 16px; color: var(--text);">
+      {% if query %}
+        نتایج جستجو برای "{{ query }}" ({{ tracked_orders|length }} مورد)
+      {% else %}
+        آخرین سفارشات فعال جهت ردیابی نمونه
+      {% endif %}
+    </h3>
+
+    {% if tracked_orders %}
+      {% for item in tracked_orders %}
+        <div class="order-track-card">
+          <!-- Card Header Info -->
+          <div class="track-card-header">
+            <div class="order-meta-info">
+              <span class="meta-item">
+                <i data-feather="hash"></i>
+                کد سفارش: <strong>{{ item.order.order_code }}</strong>
+              </span>
+              {% if item.order.sepidar_code %}
+                <span class="meta-item">
+                  <i data-feather="file-text"></i>
+                  کد سپیدار (مالی): <strong class="badge bg-light text-teal">{{ item.order.sepidar_code }}</strong>
+                </span>
+              {% else %}
+                <span class="meta-item text-muted">
+                  <i data-feather="file-text"></i>
+                  فاقد کد سپیدار
+                </span>
+              {% endif %}
+              <span class="meta-item">
+                <i data-feather="user"></i>
+                مشتری: <strong>{{ item.order.customer.name }} {{ item.order.customer.last_name }} ({{ item.order.customer.customer_code }})</strong>
+              </span>
+            </div>
+            <div>
+              <span class="badge" style="background: rgba(79, 70, 229, 0.1); color: var(--accent); font-size: 0.85rem;">
+                وضعیت: {{ item.order.get_status_display }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Stepper Visualization -->
+          {% if item.order.status == 'cancelled' %}
+            <div class="alert alert-danger" role="alert" style="border-radius: 12px;">
+              <h5 style="font-weight: 800; margin-bottom: 4px;">⚠️ سفارش لغو شده است</h5>
+              توضیحات: {{ item.order.description|default:"علتی ثبت نشده است." }}
+            </div>
+          {% else %}
+            <div class="stepper-container">
+              <!-- Stepper background and progress line -->
+              <div class="stepper-line">
+                <div class="stepper-line-progress" style="width: {% if item.step_idx == 1 %}0%{% elif item.step_idx == 2 %}20%{% elif item.step_idx == 3 %}40%{% elif item.step_idx == 4 %}60%{% elif item.step_idx == 5 %}80%{% else %}100%{% endif %};"></div>
+              </div>
+
+              <!-- Nodes -->
+              <div class="step-node {% if item.step_idx >= 1 %}completed{% endif %} {% if item.step_idx == 1 %}active{% endif %}">
+                <div class="step-icon-bubble">
+                  <i data-feather="edit-3" style="width:18px;height:18px;"></i>
+                </div>
+                <span class="step-label">ثبت سفارش</span>
+              </div>
+
+              <div class="step-node {% if item.step_idx >= 2 %}completed{% endif %} {% if item.step_idx == 2 %}active{% endif %}">
+                <div class="step-icon-bubble">
+                  <i data-feather="scissors" style="width:18px;height:18px;"></i>
+                </div>
+                <span class="step-label">برشکاری</span>
+              </div>
+
+              <div class="step-node {% if item.step_idx >= 3 %}completed{% endif %} {% if item.step_idx == 3 %}active{% endif %}">
+                <div class="step-icon-bubble">
+                  <i data-feather="activity" style="width:18px;height:18px;"></i>
+                </div>
+                <span class="step-label">دوخت و تولید</span>
+              </div>
+
+              <div class="step-node {% if item.step_idx >= 4 %}completed{% endif %} {% if item.step_idx == 4 %}active{% endif %}">
+                <div class="step-icon-bubble">
+                  <i data-feather="check-square" style="width:18px;height:18px;"></i>
+                </div>
+                <span class="step-label">کنترل کیفیت</span>
+              </div>
+
+              <div class="step-node {% if item.step_idx >= 5 %}completed{% endif %} {% if item.step_idx == 5 %}active{% endif %}">
+                <div class="step-icon-bubble">
+                  <i data-feather="package" style="width:18px;height:18px;"></i>
+                </div>
+                <span class="step-label">تحویل انبار</span>
+              </div>
+
+              <div class="step-node {% if item.step_idx >= 6 %}completed{% endif %} {% if item.step_idx == 6 %}active{% endif %}">
+                <div class="step-icon-bubble">
+                  <i data-feather="truck" style="width:18px;height:18px;"></i>
+                </div>
+                <span class="step-label">تحویل مشتری</span>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Stoppage Alert Banner if any associated planning is suspended -->
+          {% if item.has_suspension %}
+            {% for plan in item.suspended_plans %}
+              <div class="stoppage-alert-box animate-pulse">
+                <div class="stoppage-badge">
+                  <i data-feather="alert-octagon" style="width:14px;height:14px;"></i>
+                  <span>تولید متوقف شده</span>
+                </div>
+                <div class="stoppage-details">
+                  <div class="stoppage-title">
+                    توقف در مرحله: {{ plan.stage.name }} | ماشین: {{ plan.machine.name }}
+                  </div>
+                  <div class="stoppage-desc">
+                    <strong>علت توقف کارگاه:</strong> {{ plan.stoppage_reason|default:"علت فنی دقیق ثبت نشده است (کمبود مواد اولیه یا نیاز به تعمیر دستگاه)." }}
+                    <span class="text-muted" style="margin-right: 12px; font-size: 0.8rem;">
+                      [اپراتور مسئول: {{ plan.operator }}]
+                    </span>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <!-- Production Plans and Details -->
+          <div class="row mt-4">
+            <div class="col-md-6">
+              <div class="tracking-detail-section">
+                <div class="tracking-detail-title">
+                  <i data-feather="shopping-cart"></i>
+                  <span>اقلام سفارش داده شده</span>
+                </div>
+                <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                  {% for sub in item.items_list %}
+                    <li class="d-flex justify-content-between align-items-center" style="font-size: 0.85rem; border-bottom: 1px solid rgba(0,0,0,0.03); padding-bottom: 6px;">
+                      <span>{{ sub.product.name }}</span>
+                      <strong style="color: var(--accent);">{{ sub.quantity|floatformat:0 }} عدد</strong>
+                    </li>
+                  {% empty %}
+                    <li class="text-muted" style="font-size: 0.82rem;">قلم کالایی ثبت نشده است.</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="tracking-detail-section">
+                <div class="tracking-detail-title">
+                  <i data-feather="tool"></i>
+                  <span>وضعیت در برنامه‌ریزی تولید کارخانه</span>
+                </div>
+                {% if item.plans %}
+                  <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for plan in item.plans %}
+                      <div style="font-size: 0.82rem; padding: 6px; background: #fff; border-radius: 8px; border: 1px solid var(--border);">
+                        <div class="d-flex justify-content-between">
+                          <span>کد تولید: <strong>{{ plan.planning_code }}</strong></span>
+                          <span>مرحله: <strong>{{ plan.stage.name }}</strong></span>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                          <span>وضعیت: 
+                            <strong style="color: {% if plan.status == 'completed' %}var(--success){% elif plan.status == 'suspended' %}var(--danger){% else %}var(--warning){% endif %};">
+                              {{ plan.get_status_display }}
+                            </strong>
+                          </span>
+                          <span>ماشین: <strong>{{ plan.machine.name }}</strong></span>
+                        </div>
+                        <!-- Progress bar -->
+                        <div class="progress mt-2" style="height: 6px; border-radius: 10px;">
+                          <div class="progress-bar {% if plan.status == 'suspended' %}bg-danger{% elif plan.status == 'completed' %}bg-success{% else %}bg-info{% endif %}" role="progressbar" style="width: {% if plan.target_quantity > 0 %}{% widthratio plan.produced_quantity plan.target_quantity 100 %}{% else %}0{% endif %}%;"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1" style="font-size: 0.75rem; color: var(--muted);">
+                          <span>هدف: {{ plan.target_quantity }}</span>
+                          <span>تولید شده: {{ plan.produced_quantity }}</span>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="text-muted" style="font-size: 0.82rem; margin: 0;">هنوز برنامه‌ریزی تولیدی در کارگاه برای این سفارش ثبت نشده است.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="card-custom text-center" style="padding: 40px;">
+        <i data-feather="info" style="width: 48px; height: 48px; color: var(--muted); margin-bottom: 12px;"></i>
+        <h4 style="font-weight: 800; margin-bottom: 8px;">هیچ سفارشی یافت نشد</h4>
+        <p class="text-muted" style="font-size: 0.88rem; max-width: 500px; margin: 0 auto 16px auto;">
+          لطفاً معیارهای ورودی خود را دوباره بررسی کنید. اطمینان حاصل کنید که نام مشتری، کد مشتری یا کد سپیدار درست وارد شده باشد.
+        </p>
+        <a href="?tab=tracking" class="btn-primary-custom" style="text-decoration: none;">مشاهده کل سفارشات</a>
+      </div>
+    {% endif %}
+
+  <!-- TAB CONTENT: PRODUCTION SUMMARY -->
+  {% elif current_tab == 'production' %}
+    <div class="grid-metrics animate-fade-in">
+      <div class="metric-card">
+        <div class="metric-icon"><i data-feather="calendar"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">کل برنامه‌ریزی‌ها</span>
+          <span class="metric-value">{{ production_summary.total_plans }}</span>
+        </div>
+      </div>
+      <div class="metric-card success">
+        <div class="metric-icon"><i data-feather="check-circle"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">تکمیل شده</span>
+          <span class="metric-value">{{ production_summary.completed }}</span>
+        </div>
+      </div>
+      <div class="metric-card warning">
+        <div class="metric-icon"><i data-feather="activity"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">در حال تولید</span>
+          <span class="metric-value">{{ production_summary.producing }}</span>
+        </div>
+      </div>
+      <div class="metric-card danger">
+        <div class="metric-icon"><i data-feather="alert-triangle"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">متوقف شده (توقفات)</span>
+          <span class="metric-value">{{ production_summary.suspended }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Stoppage Control Center -->
+    <div class="card-custom animate-fade-in" style="margin-bottom: 24px; border: 1px solid rgba(239, 68, 68, 0.2);">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap: 12px;">
+        <h4 style="font-weight: 800; color: #991b1b; display: flex; align-items: center; gap: 8px; margin: 0;">
+          <i data-feather="alert-octagon" style="color: var(--danger);"></i>
+          <span>لیست قرمز توقفات کارخانه (علل تعلیق خطوط تولید)</span>
+        </h4>
+        <div class="d-flex align-items-center gap-2">
+          <button onclick="exportTableToExcel('red-stoppages-table', 'گزارش_قرمز_توقفات_کارخانه')" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1" style="font-size: 0.75rem; font-weight: bold; border-radius: 8px; padding: 6px 12px;">
+            <i data-feather="download" style="width: 14px; height: 14px;"></i> خروجی اکسل
+          </button>
+          <span class="badge bg-danger text-white" style="font-weight: 700; padding: 6px 12px; font-size: 0.8rem;">
+            {{ stoppages|length }} خط تولید متوقف
+          </span>
+        </div>
+      </div>
+      <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 20px;">
+        این گزارش مانیتورینگ زنده، تمام ایستگاه‌های تولیدی را که به علت خرابی ماشین، کمبود کالا/مواد اولیه یا غیبت اپراتور به حالت تعلیق درآمده‌اند را به همراه علت ثبت شده توقف نشان می‌دهد.
+      </p>
+
+      <div class="table-responsive">
+        <table class="table table-hover" id="red-stoppages-table" style="margin-bottom: 0;">
+          <thead>
+            <tr>
+              <th>کد برنامه‌ریزی</th>
+              <th>کد سفارش</th>
+              <th>مشتری</th>
+              <th>کالا</th>
+              <th>مرحله کارگاهی</th>
+              <th>ماشین صنعتی</th>
+              <th>اپراتور</th>
+              <th style="color: var(--danger);">علت توقف تولید</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for plan in stoppages %}
+              <tr>
+                <td><strong>{{ plan.planning_code }}</strong></td>
+                <td>
+                  <a href="?tab=tracking&q={{ plan.order.order_code }}" style="color: var(--accent); text-decoration: none; font-weight: bold;">
+                    {{ plan.order.order_code }}
+                  </a>
+                </td>
+                <td>{{ plan.order.customer.name }} {{ plan.order.customer.last_name }}</td>
+                <td>{{ plan.product.name }}</td>
+                <td><span class="badge bg-light text-dark">{{ plan.stage.name }}</span></td>
+                <td>{{ plan.machine.name }}</td>
+                <td>{{ plan.operator }}</td>
+                <td>
+                  <span class="text-danger font-weight-bold" style="font-size: 0.88rem; display: inline-flex; align-items: center; gap: 6px;">
+                    🔴 {{ plan.stoppage_reason|default:"نیاز به سرویس ماشین یا کمبود فیدر مواد اولیه" }}
+                  </span>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="8" class="text-center text-success py-4" style="font-weight: 700;">
+                  🟢 عالی! در حال حاضر هیچ خط تولید متوقفی در کل کارخانه گزارش نشده است.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  <!-- TAB CONTENT: WAREHOUSE STOCK -->
+  {% elif current_tab == 'warehouse' %}
+    <div class="row animate-fade-in">
+      <div class="col-lg-8">
+        <div class="card-custom mb-4">
+          <h4 style="font-weight: 800; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-feather="archive"></i>
+            <span>گزارش موجودی کالا به تفکیک انبارها</span>
+          </h4>
+          
+          {% for wh_data in warehouse_data %}
+            <div style="background: #f8fafc; border-radius: 12px; padding: 18px; border: 1px solid var(--border); margin-bottom: 16px;">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 style="font-weight: 800; color: var(--text); font-size: 0.95rem; margin: 0;">
+                  انبار: {{ wh_data.warehouse.name }} ({{ wh_data.warehouse.location|default:"بدون آدرس" }})
+                </h5>
+                <div class="d-flex align-items-center gap-2">
+                  <button onclick="exportTableToExcel('warehouse-table-{{ wh_data.warehouse.pk }}', 'گزارش_موجودی_انبار_{{ wh_data.warehouse.name }}')" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1" style="font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;">
+                    <i data-feather="download" style="width: 12px; height: 12px;"></i> اکسل
+                  </button>
+                  <span class="badge" style="background: rgba(79, 70, 229, 0.1); color: var(--accent);">
+                    کل موجودی فیزیکی: {{ wh_data.total_qty|floatformat:0 }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table" id="warehouse-table-{{ wh_data.warehouse.pk }}" style="background: #ffffff; border: none; margin-bottom: 0;">
+                  <thead>
+                    <tr>
+                      <th>نام محصول</th>
+                      <th>نوع/واحد</th>
+                      <th>موجودی</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in wh_data.items %}
+                      <tr>
+                        <td><strong>{{ item.product.name }}</strong></td>
+                        <td>{{ item.product.unit }}</td>
+                        <td>
+                          <span class="{% if item.quantity < 50 %}text-danger font-weight-bold{% else %}text-success{% endif %}">
+                            {{ item.quantity|floatformat:0 }}
+                          </span>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr>
+                        <td colspan="3" class="text-center text-muted" style="font-size: 0.85rem;">این انبار فاقد کالای ثبت شده است.</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card-custom" style="border: 1px solid rgba(239, 68, 68, 0.25);">
+          <h4 style="font-weight: 800; color: var(--danger); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+            <i data-feather="alert-triangle"></i>
+            <span>هشدار بحرانی کسری انبار</span>
+          </h4>
+          <p class="text-muted" style="font-size: 0.82rem; margin-bottom: 20px;">
+            محصولاتی که سطح موجودی آن‌ها به زیر حد بحرانی (۵۰ واحد) رسیده است و باید سریعاً تامین یا خریداری شوند:
+          </p>
+
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px;">
+            {% for low_item in low_stock_items %}
+              <li style="background: #fff5f5; border: 1px solid #fee2e2; border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-weight: bold; color: #991b1b; font-size: 0.85rem;">{{ low_item.product.name }}</div>
+                  <div class="text-muted" style="font-size: 0.75rem;">انبار: {{ low_item.warehouse.name }}</div>
+                </div>
+                <div style="text-align: left;">
+                  <span class="badge bg-danger text-white" style="font-size: 0.8rem;">{{ low_item.quantity|floatformat:0 }} {{ low_item.product.unit }}</span>
+                </div>
+              </li>
+            {% empty %}
+              <li class="text-center text-success py-3" style="font-weight: bold; font-size: 0.85rem;">
+                🟢 موجودی تمامی مواد اولیه و محصولات در سطح ایمن است.
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  <!-- TAB CONTENT: SALES & ORDER ANALYTICS -->
+  {% elif current_tab == 'sales' %}
+    <div class="grid-metrics animate-fade-in">
+      <div class="metric-card success">
+        <div class="metric-icon"><i data-feather="dollar-sign"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">ارزش کل مبادلات تجاری</span>
+          <span class="metric-value">{{ sales_data.total_revenue|floatformat:0 }} تومان</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon"><i data-feather="users"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">کل سفارشات ثبت شده</span>
+          <span class="metric-value">{{ sales_data.total_orders_count|floatformat:0 }} سفارش</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row animate-fade-in">
+      <div class="col-md-6">
+        <div class="card-custom mb-4">
+          <h4 style="font-weight: 800; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+            <i data-feather="pie-chart"></i>
+            <span>توزیع ارزش مالی سفارشات بر اساس وضعیت</span>
+          </h4>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            {% for status, value in sales_data.status_totals.items %}
+              <div>
+                <div class="d-flex justify-content-between mb-1" style="font-size: 0.85rem;">
+                  <span style="font-weight: bold;">
+                    {% if status == 'registered' %}ثبت شده{% elif status == 'cutting' %}برش{% elif status == 'sewing' %}دوخت{% elif status == 'quality' %}کنترل کیفیت{% elif status == 'warehouse' %}انبار{% elif status == 'delivered' %}تحویل شده{% else %}{{ status }}{% endif %}
+                  </span>
+                  <span class="text-muted">{{ value }} تومان</span>
+                </div>
+                <div class="progress" style="height: 10px; border-radius: 10px;">
+                  <div class="progress-bar bg-teal" role="progressbar" style="width: 75%; background-color: var(--accent);"></div>
+                </div>
+              </div>
+            {% empty %}
+              <p class="text-muted text-center" style="font-size: 0.85rem;">داده‌ای برای تحلیل وجود ندارد.</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card-custom mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 style="font-weight: 800; color: var(--accent); margin: 0; display: flex; align-items: center; gap: 8px;">
+              <i data-feather="award"></i>
+              <span>مشتریان برتر بر اساس بیشترین سفارش</span>
+            </h4>
+            <button onclick="exportTableToExcel('top-customers-table', 'گزارش_مشتریان_برتر')" class="btn btn-sm btn-outline-success d-flex align-items-center gap-1" style="font-size: 0.75rem; font-weight: bold; border-radius: 8px; padding: 6px 12px;">
+              <i data-feather="download" style="width: 14px; height: 14px;"></i> خروجی اکسل
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table" id="top-customers-table" style="border: none; margin-bottom: 0;">
+              <thead>
+                <tr>
+                  <th>مشتری</th>
+                  <th>کد مشتری</th>
+                  <th>تعداد سفارشات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for customer in sales_data.top_customers %}
+                  <tr>
+                    <td><strong>{{ customer.name }} {{ customer.last_name }}</strong></td>
+                    <td>{{ customer.customer_code }}</td>
+                    <td><span class="badge" style="background: rgba(79,70,229,0.1); color: var(--accent); font-size: 0.85rem;">{{ customer.order_count }} سفارش</span></td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="3" class="text-center text-muted">مشتری‌ای ثبت نشده است.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+  function exportTableToExcel(tableID, filename = '') {
+    const table = document.getElementById(tableID);
+    if (!table) return;
+    
+    let html = table.outerHTML;
+    
+    // Add BOM for proper Farsi UTF-8 decoding in Excel
+    const blob = new Blob(['\ufeff' + html], {
+      type: 'application/vnd.ms-excel'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (filename || 'excel-export') + '.xls';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+</script>
+{% endblock %}

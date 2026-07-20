@@ -1,0 +1,6 @@
+{
+  "name": "Textile ERP",
+  "description": "سامانه مدیریت حاما پارچه - سیستم جامع مدیریت مشتریان، سفارشات، محصولات و انبار",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

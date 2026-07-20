@@ -1,0 +1,672 @@
+{% extends "core/base.html" %}
+
+{% block title %}داشبورد انبار {{ warehouse.name }} - حاما پارچه{% endblock %}
+{% block page_title %}مدیریت انبار {{ warehouse.name }}{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'warehouse:warehouse_list' %}">مدیریت انبارها</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{{ warehouse.name }}</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up">
+
+    <!-- بخش هدر مشخصات کلیدی انبار با ظاهر شیک و مهندسی شده -->
+    <div class="card-custom mb-4 p-4 position-relative overflow-hidden border-0 shadow-sm" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-right: 4px solid var(--accent) !important;">
+        <div class="position-absolute" style="left: -15px; top: -15px; opacity: 0.05; pointer-events: none;">
+            <i data-feather="package" style="width: 140px; height: 140px; stroke-width: 1;"></i>
+        </div>
+        
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="p-2 bg-primary-subtle rounded-3 text-primary me-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i data-feather="box" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary mb-1 px-2.5 py-1 text-xs" style="font-weight: 700;">
+                            {{ warehouse.get_warehouse_type_display }}
+                        </span>
+                        <h4 class="fw-bold m-0 text-gray-900" style="font-size: 1.3rem; letter-spacing: -0.02em;">{{ warehouse.name }}</h4>
+                    </div>
+                </div>
+                <div class="text-muted text-xs d-flex flex-wrap gap-4 mt-3">
+                    <span class="d-flex align-items-center"><i data-feather="tag" class="me-1" style="width: 14px; height: 14px; color: var(--accent);"></i> <strong>شناسه سیستمی:</strong> <span class="font-mono ms-1 text-dark fw-bold">{{ warehouse.code }}</span></span>
+                    <span class="d-flex align-items-center"><i data-feather="file-text" class="me-1" style="width: 14px; height: 14px; color: var(--accent);"></i> <strong>توضیحات:</strong> <span class="ms-1 text-dark">{{ warehouse.description|default:"توضیحی ثبت نشده است" }}</span></span>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="{% url 'warehouse:warehouse_list' %}" class="btn btn-outline-soft d-inline-flex align-items-center gap-1.5 py-2 px-3 text-xs fw-bold">
+                    <i data-feather="arrow-right" style="width: 15px; height: 15px;"></i> بازگشت به لیست انبارها
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- مانیتورینگ آماری (KPIs) -->
+    <div class="row g-3 mb-4">
+        <!-- کل کالاها -->
+        <div class="col-md-4">
+            <div class="card-custom p-3 border-0 shadow-sm bg-white d-flex align-items-center justify-content-between h-100" style="border-right: 3px solid #10b981 !important;">
+                <div class="d-flex align-items-center">
+                    <div class="p-2.5 bg-success-subtle rounded-3 text-success me-3">
+                        <i data-feather="layers" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted text-xxs mb-0.5 fw-bold text-uppercase">تعداد اقلام کالا</div>
+                        <div class="font-mono text-lg fw-bold text-dark">{{ total_items }} <span class="text-xs text-muted" style="font-family: 'Vazirmatn';">قلم</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- کالاهای بحرانی -->
+        <div class="col-md-4">
+            <div class="card-custom p-3 border-0 shadow-sm bg-white d-flex align-items-center justify-content-between h-100" style="border-right: 3px solid #f43f5e !important;">
+                <div class="d-flex align-items-center">
+                    <div class="p-2.5 {% if low_stock_items > 0 %}bg-danger-subtle text-danger{% else %}bg-light text-muted{% endif %} rounded-3 me-3">
+                        <i data-feather="alert-triangle" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted text-xxs mb-0.5 fw-bold text-uppercase">اقلام بحرانی (زیر حد سفارش)</div>
+                        <div class="font-mono text-lg fw-bold {% if low_stock_items > 0 %}text-danger{% else %}text-dark{% endif %}">
+                            {{ low_stock_items }} <span class="text-xs text-muted" style="font-family: 'Vazirmatn';">قلم</span>
+                        </div>
+                    </div>
+                </div>
+                {% if low_stock_items > 0 %}
+                <span class="badge bg-danger text-white rounded-pill text-xxs px-2 py-0.5 animate-pulse">نیازمند سفارش</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- کل تراکنش‌ها -->
+        <div class="col-md-4">
+            <div class="card-custom p-3 border-0 shadow-sm bg-white d-flex align-items-center justify-content-between h-100" style="border-right: 3px solid #4f46e5 !important;">
+                <div class="d-flex align-items-center">
+                    <div class="p-2.5 bg-info-subtle rounded-3 text-info me-3">
+                        <i data-feather="activity" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted text-xxs mb-0.5 fw-bold text-uppercase">تراکنش‌های ثبت‌شده</div>
+                        <div class="font-mono text-lg fw-bold text-dark">{{ total_transactions }} <span class="text-xs text-muted" style="font-family: 'Vazirmatn';">تراکنش</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- سیستم هوشمند تب‌های ناوبری دسکتاپ (Hama Desktop Navigation System) -->
+    <div class="mb-4">
+        <div class="nav-desktop-tabs d-flex align-items-center gap-1.5 p-1 bg-white border rounded-3 shadow-xs">
+            <button class="tab-trigger-btn active" data-tab="quick-actions">
+                <i data-feather="grid"></i>
+                <span>پیشخوان و عملیات انبار</span>
+            </button>
+            <button class="tab-trigger-btn" data-tab="stock-inventory">
+                <i data-feather="package"></i>
+                <span>موجودی کالاها ({{ total_items }})</span>
+            </button>
+            <button class="tab-trigger-btn" data-tab="ledger-transactions">
+                <i data-feather="list"></i>
+                <span>کاردکس تراکنش‌ها ({{ total_transactions }})</span>
+            </button>
+            <button class="tab-trigger-btn" data-tab="warehouse-profile">
+                <i data-feather="info"></i>
+                <span>مشخصات و آدرس</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- محتوای مربوط به تب‌ها -->
+    <div class="tab-contents-container">
+        
+        <!-- تب اول: دکمه‌های عملیاتی -->
+        <div class="tab-pane-custom active" id="quick-actions">
+            <div class="d-flex align-items-center mb-3">
+                <div class="p-1 bg-primary rounded-circle me-2" style="width: 6px; height: 6px; background-color: var(--accent) !important;"></div>
+                <h5 class="fw-bold m-0 text-gray-900" style="font-size: 1rem;">عملیات فیزیکی ورود و خروج</h5>
+            </div>
+            
+            <div class="row g-3">
+                <!-- ورود به انبار (اولین گزینه سمت راست در راستای RTL) -->
+                <div class="col-md-6 col-lg-6">
+                    <a href="{% url 'warehouse:stock_in' warehouse.id %}" class="action-card-link text-decoration-none">
+                        <div class="action-card-inner border border-success-subtle bg-white h-100 p-4 rounded-4 position-relative overflow-hidden transition shadow-sm hover-shadow-md" style="border-right: 5px solid #10b981 !important;">
+                            <div class="d-flex align-items-start justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-3 bg-success-subtle text-success rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                                        <i data-feather="plus-circle" style="width: 26px; height: 26px;"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold text-success mb-1" style="font-size: 1.05rem;">ورود به انبار (سند رسید)</h5>
+                                        <p class="text-muted text-xs mb-0">افزایش موجودی کالا به علت خرید بار، مرجوعی، انتقالی یا تولید داخلی</p>
+                                    </div>
+                                </div>
+                                <i data-feather="chevron-left" class="text-muted arrow-icon" style="width: 18px; height: 18px;"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- خروج از انبار (گزینه دوم در سطر اول) -->
+                <div class="col-md-6 col-lg-6">
+                    <a href="{% url 'warehouse:stock_out' warehouse.id %}" class="action-card-link text-decoration-none">
+                        <div class="action-card-inner border border-danger-subtle bg-white h-100 p-4 rounded-4 position-relative overflow-hidden transition shadow-sm hover-shadow-md" style="border-right: 5px solid #f43f5e !important;">
+                            <div class="d-flex align-items-start justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-3 bg-danger-subtle text-danger rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                                        <i data-feather="minus-circle" style="width: 26px; height: 26px;"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold text-danger mb-1" style="font-size: 1.05rem;">خروج از انبار (سند حواله)</h5>
+                                        <p class="text-muted text-xs mb-0">کسر موجودی کالا جهت تحویل به خط تولید، خروج مشتری یا ضایعات</p>
+                                    </div>
+                                </div>
+                                <i data-feather="chevron-left" class="text-muted arrow-icon" style="width: 18px; height: 18px;"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- دکمه ناوبری سریع به موجودی‌ها در داشبورد -->
+                <div class="col-md-6 col-lg-6">
+                    <div class="action-card-inner border border-primary-subtle bg-white h-100 p-4 rounded-4 position-relative overflow-hidden transition shadow-sm hover-shadow-md cursor-pointer" onclick="switchTab('stock-inventory')" style="border-right: 5px solid #4f46e5 !important;">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="p-3 bg-primary-subtle text-primary rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                                    <i data-feather="layers" style="width: 26px; height: 26px;"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold text-primary mb-1" style="font-size: 1.05rem; color: var(--accent) !important;">مدیریت موجودی کالاها</h5>
+                                    <p class="text-muted text-xs mb-0">گزارش لحظه‌ای موجودی فیزیکی، حداقل ذخیره و ثبت عملیات سریع به تفکیک کالا</p>
+                                </div>
+                            </div>
+                            <i data-feather="arrow-left" class="text-muted arrow-icon" style="width: 18px; height: 18px;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- دکمه ناوبری سریع به کاردکس در داشبورد -->
+                <div class="col-md-6 col-lg-6">
+                    <div class="action-card-inner border border-info-subtle bg-white h-100 p-4 rounded-4 position-relative overflow-hidden transition shadow-sm hover-shadow-md cursor-pointer" onclick="switchTab('ledger-transactions')" style="border-right: 5px solid #4f46e5 !important;">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="p-3 bg-info-subtle text-info rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 52px; height: 52px;">
+                                    <i data-feather="activity" style="width: 26px; height: 26px;"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold text-info mb-1" style="font-size: 1.05rem;">کاردکس کامل تراکنش‌ها</h5>
+                                    <p class="text-muted text-xs mb-0">مشاهده دفتر کل تمامی اسناد صادره ورودی و خروجی با ذکر تاریخ و کاربر ثبت‌کننده</p>
+                                </div>
+                            </div>
+                            <i data-feather="arrow-left" class="text-muted arrow-icon" style="width: 18px; height: 18px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- تب دوم: مدیریت موجودی فیزیکی (کارتکس موجودی) -->
+        <div class="tab-pane-custom" id="stock-inventory">
+            <div class="card-custom bg-white p-3 mb-3 border-0 shadow-sm">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-6 d-flex align-items-center gap-2">
+                        <i data-feather="search" class="text-muted" style="width: 18px; height: 18px;"></i>
+                        <h6 class="fw-bold m-0 text-gray-800 text-xs">فیلتر سریع موجودی اقلام</h6>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="position-relative">
+                            <i data-feather="search" class="text-muted position-absolute" style="right: 14px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px;"></i>
+                            <input type="text" id="searchInput" class="form-control" placeholder="جستجو در نام محصول و کالا..." style="padding-right: 38px; font-size: 0.85rem; border-radius: 8px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="stockTable" style="border: none;">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نام کالا / محصول</th>
+                                <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">موجودی فعلی</th>
+                                <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">حداقل مجاز (کف)</th>
+                                <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نقطه سفارش</th>
+                                <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">وضعیت انبار</th>
+                                <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 180px;">عملیات سریع</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in stock_items %}
+                            <tr class="stock-row">
+                                <td class="ps-4 fw-bold text-gray-800 text-xs search-key">{{ item.product.name }}</td>
+                                <td class="text-center font-mono fw-bold text-xs">
+                                    <span class="px-2.5 py-1 bg-light rounded-2 border text-dark">{{ item.quantity|floatformat:0 }}</span>
+                                </td>
+                                <td class="text-center font-mono text-xs text-muted">{{ item.min_stock|floatformat:0 }}</td>
+                                <td class="text-center font-mono text-xs text-muted">{{ item.reorder_point|floatformat:0 }}</td>
+                                <td class="text-center text-xs">
+                                    {% if "تمام شده" in item.reorder_status %}
+                                        <span class="badge bg-danger text-white rounded-3 px-2 py-1 text-xxs">تمام شده</span>
+                                    {% elif "کمبود" in item.reorder_status %}
+                                        <span class="badge bg-warning text-dark rounded-3 px-2 py-1 text-xxs">کمبود موجودی</span>
+                                    {% elif "نقطه سفارش" in item.reorder_status %}
+                                        <span class="badge bg-info text-white rounded-3 px-2 py-1 text-xxs">نیاز به سفارش</span>
+                                    {% else %}
+                                        <span class="badge bg-success text-white rounded-3 px-2 py-1 text-xxs">موجودی کافی</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 text-center">
+                                    <div class="d-flex justify-content-center gap-1.5">
+                                        <a href="{% url 'warehouse:stock_in' warehouse.id %}?product_id={{ item.product.id }}" class="btn btn-xs btn-success d-inline-flex align-items-center gap-1 text-xxs py-1 px-2.5 rounded-2 border-0 text-white" style="background: #10b981;">
+                                            <i data-feather="plus" style="width: 12px; height: 12px;"></i> ورود کالا
+                                        </a>
+                                        <a href="{% url 'warehouse:stock_out' warehouse.id %}?product_id={{ item.product.id }}" class="btn btn-xs btn-danger d-inline-flex align-items-center gap-1 text-xxs py-1 px-2.5 rounded-2 border-0 text-white">
+                                            <i data-feather="minus" style="width: 12px; height: 12px;"></i> خروج کالا
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <div class="mb-2">
+                                        <i data-feather="box" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+                                    </div>
+                                    <h6 class="fw-bold m-0 text-xs text-dark">هیچ اقلامی در این انبار یافت نشد</h6>
+                                    <p class="text-xxs text-muted mt-1 mb-0">جهت اختصاص کالا به انبار، از منوی ورود اقدام نمایید.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr id="noResultsRow" style="display: none;">
+                                <td colspan="6" class="text-center text-muted py-4 text-xs">
+                                    موردی منطبق با جستجوی شما یافت نشد.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- تب سوم: کاردکس کل تراکنش‌ها -->
+        <div class="tab-pane-custom" id="ledger-transactions">
+            <div class="card-custom mb-3 p-3 border-0 shadow-sm bg-white">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-5">
+                        <div class="btn-group p-1 bg-light rounded-3 w-100" role="group" style="border: 1px solid #e2e8f0;">
+                            <button type="button" class="btn btn-sm btn-light active px-3 filter-btn w-100" data-filter="all" style="font-size: 0.75rem; font-weight: 700; border-radius: 6px;">همه اسناد</button>
+                            <button type="button" class="btn btn-sm btn-light px-3 text-success filter-btn w-100" data-filter="in" style="font-size: 0.75rem; font-weight: 700; border-radius: 6px;">ورودی‌ها</button>
+                            <button type="button" class="btn btn-sm btn-light px-3 text-danger filter-btn w-100" data-filter="out" style="font-size: 0.75rem; font-weight: 700; border-radius: 6px;">خروجی‌ها</button>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="position-relative">
+                            <i data-feather="search" class="text-muted position-absolute" style="right: 14px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px;"></i>
+                            <input type="text" id="ledgerSearchInput" class="form-control" placeholder="جستجو بر اساس نام کالا، مرجع، تأمین‌کننده..." style="padding-right: 38px; font-size: 0.85rem; border-radius: 8px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="transactionsTable" style="border: none;">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 110px;">نوع سند</th>
+                                <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نام کالا / محصول</th>
+                                <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 110px;">مقدار واقعی</th>
+                                <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 90px;">واحد</th>
+                                <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">دسته‌بندی علت</th>
+                                <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">طرف حساب / فاکتور</th>
+                                <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 110px;">شماره مرجع</th>
+                                <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 100px;">کاربر ثبت</th>
+                                <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 130px;">تاریخ ثبت</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for t in transactions %}
+                            <tr class="transaction-row" data-type="{% if t.type == 'IN' %}in{% else %}out{% endif %}">
+                                <td class="ps-4 text-xs">
+                                    {% if t.type == "IN" %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1 py-1 px-2 rounded-2" style="font-size: 0.72rem;">
+                                            <i data-feather="arrow-down-left" style="width: 10px; height: 10px; stroke-width: 3;"></i> ورودی
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle d-inline-flex align-items-center gap-1 py-1 px-2 rounded-2" style="font-size: 0.72rem;">
+                                            <i data-feather="arrow-up-right" style="width: 10px; height: 10px; stroke-width: 3;"></i> خروجی
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold text-gray-800 text-xs search-cell">{{ t.product.name }}</td>
+                                <td class="text-center font-mono fw-bold text-xs">
+                                    <span class="{% if t.type == 'IN' %}text-success{% else %}text-danger{% endif %}">
+                                        {% if t.type == "IN" %}+{% else %}-{% endif %}{{ t.quantity|floatformat:0 }}
+                                    </span>
+                                </td>
+                                <td class="text-center text-xs text-muted">{{ t.unit }}</td>
+                                <td class="text-xs search-cell">
+                                    <span class="badge bg-light text-dark py-1 px-2 rounded-2 border">
+                                        {{ t.get_transaction_category_display }}
+                                    </span>
+                                </td>
+                                <td class="text-xs text-muted search-cell">{{ t.supplier_name|default:"—" }}</td>
+                                <td class="text-center font-mono text-xs search-cell">
+                                    {% if t.reference %}
+                                        <span class="text-dark fw-medium bg-light px-2 py-1 rounded-2 border" style="font-size: 0.75rem;">{{ t.reference }}</span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center text-xs text-muted search-cell">{{ t.user.username|default:"—" }}</td>
+                                <td class="pe-4 text-center font-mono text-xs text-muted" style="direction: ltr;">
+                                    {{ t.created_at|date:"Y/m/d H:i" }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-5">
+                                    <div class="mb-2">
+                                        <i data-feather="activity" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+                                    </div>
+                                    <h6 class="fw-bold m-0 text-xs text-dark">هیچ تراکنشی ثبت نشده است</h6>
+                                    <p class="text-xxs text-muted mt-1 mb-0">با ورود یا خروج اولین کالا، کاردکس انبار شکل خواهد گرفت.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr id="ledgerNoResultsRow" style="display: none;">
+                                <td colspan="9" class="text-center text-muted py-4 text-xs">
+                                    تراکنشی با فیلترهای مشخص شده منطبق نیست.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- تب چهارم: مشخصات شناسنامه انبار -->
+        <div class="tab-pane-custom" id="warehouse-profile">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card-custom bg-white p-4 h-100 shadow-sm border-0">
+                        <h6 class="fw-bold text-gray-800 border-bottom pb-2 mb-3 d-flex align-items-center gap-1.5" style="font-size: 0.95rem;">
+                            <i data-feather="info" class="text-primary" style="width: 18px; height: 18px;"></i>
+                            شناسنامه و ویژگی‌های انبار
+                        </h6>
+                        <ul class="list-unstyled d-flex flex-column gap-3 text-xs mb-0">
+                            <li class="d-flex justify-content-between pb-2 border-bottom">
+                                <span class="text-muted">نام انبار فیزیکی:</span>
+                                <span class="fw-bold text-dark">{{ warehouse.name }}</span>
+                            </li>
+                            <li class="d-flex justify-content-between pb-2 border-bottom">
+                                <span class="text-muted">کد شناسایی سیستم:</span>
+                                <span class="font-mono fw-bold text-dark">{{ warehouse.code }}</span>
+                            </li>
+                            <li class="d-flex justify-content-between pb-2 border-bottom">
+                                <span class="text-muted">نوع کاربری انبار:</span>
+                                <span class="fw-bold text-primary">{{ warehouse.get_warehouse_type_display }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-custom bg-white p-4 h-100 shadow-sm border-0">
+                        <h6 class="fw-bold text-gray-800 border-bottom pb-2 mb-3 d-flex align-items-center gap-1.5" style="font-size: 0.95rem;">
+                            <i data-feather="map-pin" class="text-primary" style="width: 18px; height: 18px;"></i>
+                            محل استقرار و یادداشت‌ها
+                        </h6>
+                        <p class="text-xs text-muted mb-3 leading-relaxed">
+                            {{ warehouse.description|default:"توضیحات و آدرس دقیقی برای این انبار ثبت نشده است. این توضیحات به انبارداران برای مدیریت اقلام و قفسه‌بندی کمک می‌کند." }}
+                        </p>
+                        <div class="p-3 bg-light rounded-3 text-xxs text-muted d-flex align-items-center gap-2">
+                            <i data-feather="shield" class="text-success" style="width: 16px; height: 16px;"></i>
+                            دسترسی به کارتابل این انبار محدود به کاربران تأیید شده سیستم حاما پارچه است.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- استایل‌های اختصاصی ارتقا یافته برای ایجاد حس Desktop Software -->
+<style>
+    /* دکمه‌های تب ناوبری دسکتاپ */
+    .nav-desktop-tabs {
+        border-color: #e2e8f0 !important;
+        background-color: #f8fafc !important;
+    }
+    .tab-trigger-btn {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        padding: 10px 14px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #475569;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+    .tab-trigger-btn i {
+        width: 16px;
+        height: 16px;
+        stroke-width: 2px;
+        color: #64748b;
+        transition: color 0.2s;
+    }
+    .tab-trigger-btn:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+        color: #0f172a;
+    }
+    .tab-trigger-btn.active {
+        background-color: #ffffff !important;
+        color: var(--accent) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .tab-trigger-btn.active i {
+        color: var(--accent) !important;
+    }
+
+    /* پین‌های داینامیک تب‌ها */
+    .tab-pane-custom {
+        display: none;
+        animation: paneFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .tab-pane-custom.active {
+        display: block;
+    }
+    @keyframes paneFadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* دکور کارت‌های عملیات */
+    .action-card-inner {
+        position: relative;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        border-width: 1px !important;
+        border-color: #e2e8f0 !important;
+    }
+    
+    .action-card-link:hover .action-card-inner {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(79, 70, 229, 0.06) !important;
+        border-color: rgba(79, 70, 229, 0.25) !important;
+    }
+    
+    .action-card-link:hover .arrow-icon {
+        transform: translateX(-4px);
+        color: var(--accent) !important;
+    }
+    
+    .arrow-icon {
+        transition: transform 0.2s ease, color 0.2s ease;
+    }
+    
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .leading-relaxed {
+        line-height: 1.6;
+    }
+
+    .me-3 {
+        margin-left: 0 !important;
+        margin-right: 1rem !important;
+    }
+    .me-2 {
+        margin-left: 0 !important;
+        margin-right: 0.5rem !important;
+    }
+    .me-1 {
+        margin-left: 0 !important;
+        margin-right: 0.25rem !important;
+    }
+</style>
+
+<!-- اسکریپت فیلتر و سوییچ تب‌های فرانت اِند به صورت نِیتِیو و فوق‌العاده پرسرعت -->
+<script>
+    function switchTab(tabId) {
+        // فعال‌سازی دکمه تب منو
+        const triggers = document.querySelectorAll('.tab-trigger-btn');
+        triggers.forEach(btn => {
+            if (btn.getAttribute('data-tab') === tabId) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // سوییچ پنل مربوطه
+        const panes = document.querySelectorAll('.tab-pane-custom');
+        panes.forEach(pane => {
+            if (pane.id === tabId) {
+                pane.classList.add('active');
+            } else {
+                pane.classList.remove('active');
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // اختصاص لیسنر کلیک برای سوییچ دستی تب‌ها
+        const triggers = document.querySelectorAll('.tab-trigger-btn');
+        triggers.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                switchTab(tabId);
+            });
+        });
+
+        // منطق سرچ جدول موجودی کالا
+        const searchInput = document.getElementById("searchInput");
+        const stockRows = document.querySelectorAll(".stock-row");
+        const noResultsRow = document.getElementById("noResultsRow");
+
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const query = searchInput.value.toLowerCase().trim();
+                let hasResults = false;
+
+                stockRows.forEach(row => {
+                    const searchKey = row.querySelector(".search-key").textContent.toLowerCase();
+                    if (searchKey.includes(query)) {
+                        row.style.display = "";
+                        hasResults = true;
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                if (hasResults || query === "") {
+                    noResultsRow.style.display = "none";
+                } else {
+                    noResultsRow.style.display = "";
+                }
+            });
+        }
+
+        // منطق سرچ و فیلتر کاردکس تراکنش‌ها
+        const ledgerSearchInput = document.getElementById("ledgerSearchInput");
+        const filterButtons = document.querySelectorAll(".filter-btn");
+        const txRows = document.querySelectorAll(".transaction-row");
+        const ledgerNoResultsRow = document.getElementById("ledgerNoResultsRow");
+
+        let activeTypeFilter = "all";
+        let searchQuery = "";
+
+        function applyTxFilters() {
+            let visibleCount = 0;
+
+            txRows.forEach(row => {
+                const rowType = row.getAttribute("data-type");
+                
+                let textContent = "";
+                row.querySelectorAll(".search-cell").forEach(cell => {
+                    textContent += " " + cell.textContent.toLowerCase();
+                });
+
+                const matchesType = (activeTypeFilter === "all" || rowType === activeTypeFilter);
+                const matchesSearch = textContent.includes(searchQuery);
+
+                if (matchesType && matchesSearch) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            if (visibleCount === 0 && txRows.length > 0) {
+                ledgerNoResultsRow.style.display = "";
+            } else {
+                ledgerNoResultsRow.style.display = "none";
+            }
+        }
+
+        if (ledgerSearchInput) {
+            ledgerSearchInput.addEventListener("input", function () {
+                searchQuery = ledgerSearchInput.value.toLowerCase().trim();
+                applyTxFilters();
+            });
+        }
+
+        filterButtons.forEach(btn => {
+            btn.addEventListener("click", function () {
+                filterButtons.forEach(b => b.classList.remove("active", "btn-primary", "btn-success", "btn-danger", "btn-dark"));
+                filterButtons.forEach(b => b.classList.add("btn-light"));
+                
+                this.classList.remove("btn-light");
+                this.classList.add("active");
+                if (this.getAttribute("data-filter") === "in") {
+                    this.classList.add("btn-success");
+                } else if (this.getAttribute("data-filter") === "out") {
+                    this.classList.add("btn-danger");
+                } else {
+                    this.classList.add("btn-dark");
+                }
+
+                activeTypeFilter = this.getAttribute("data-filter");
+                applyTxFilters();
+            });
+        });
+    });
+</script>
+{% endblock %}

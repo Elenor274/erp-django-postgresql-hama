@@ -1,0 +1,200 @@
+{% extends "core/base.html" %}
+
+{% block title %}برنامه‌ریزی تولید - حاما پارچه{% endblock %}
+{% block page_title %}برنامه‌ریزی و هدایت عملیات تولید{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item active" aria-current="page">برنامه‌ریزی تولید</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up">
+
+    <!-- بنر راهنمای بالای صفحه -->
+    <div class="card-custom mb-4 p-4 position-relative overflow-hidden border-0 shadow-sm" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-right: 4px solid var(--accent) !important;">
+        <div class="position-absolute" style="left: -15px; top: -15px; opacity: 0.05; pointer-events: none;">
+            <i data-feather="calendar" style="width: 140px; height: 140px; stroke-width: 1;"></i>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <h5 class="fw-bold text-gray-900 mb-1.5" style="font-size: 1.15rem; letter-spacing: -0.02em;">سامانه هوشمند برنامه‌ریزی و پایش تولید کارخانجات</h5>
+                <p class="text-muted text-xs mb-0 leading-relaxed">تعیین دستور کار خطوط، تخصیص ماشین‌آلات و اپراتورها به مراحل گوناگون تولید (بافندگی، رنگرزی، تکمیل) و رهگیری در لحظه راندمان کارخانه.</p>
+            </div>
+            <div class="col-md-3 text-md-end mt-3 mt-md-0 d-flex flex-column align-items-md-end gap-2 justify-content-center">
+                <a href="{% url 'production:planning_create' %}" class="btn btn-primary text-white d-inline-flex align-items-center gap-1.5 py-2 px-3.5 rounded-3 border-0 text-xs fw-bold font-sans" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); width: fit-content;">
+                    <i data-feather="plus-circle" style="width: 15px; height: 15px;"></i> برنامه‌ریزی تولید جدید
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- فیلتر و جستجو -->
+    <div class="card-custom mb-4 p-3 border-0 shadow-sm bg-white">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-5">
+                <div class="position-relative">
+                    <i data-feather="search" class="text-muted position-absolute" style="right: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px;"></i>
+                    <input type="text" name="q" value="{{ query|default:'' }}" class="form-control" placeholder="جستجو در کد برنامه‌ریزی، محصول، ماشین یا اپراتور..." style="padding-right: 40px; font-size: 0.85rem; border-radius: 8px;">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-nowrap text-muted text-xs">وضعیت کار:</span>
+                    <select name="status" class="form-select font-sans text-xs" style="border-radius: 8px;" onchange="this.form.submit()">
+                        <option value="">همه وضعیت‌ها</option>
+                        {% for code, label in status_choices %}
+                            <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3 text-end d-flex gap-2">
+                <button type="submit" class="btn btn-outline-soft w-50 py-2 text-xs fw-bold">اعمال فیلتر</button>
+                <a href="{% url 'production:planning_list' %}" class="btn btn-outline-soft w-50 py-2 text-xs fw-bold text-center text-decoration-none">حذف فیلتر</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- جدول برنامه‌ریزی‌ها -->
+    <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="border: none;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">کد برنامه</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">سفارش مبدأ</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">شرح محصول تولیدی</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">ماشین آلات</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">اپراتور مسئول</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">مرحله کاری</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">هدف تولید</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">تولید فیزیکی</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">کسری انبار</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">بازه زمانی</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 110px;">وضعیت راندمان</th>
+                        <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 220px;">عملیات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for plan in page_obj %}
+                    <tr>
+                        <!-- کد برنامه -->
+                        <td class="ps-4 font-mono text-xs text-muted fw-bold">#{{ plan.planning_code }}</td>
+                        
+                        <!-- سفارش -->
+                        <td>
+                            <a href="/orders/{{ plan.order.pk }}/" class="font-mono text-xs fw-bold text-decoration-none" style="color: var(--accent);">
+                                #{{ plan.order.order_code }}
+                            </a>
+                        </td>
+                        
+                        <!-- محصول -->
+                        <td class="fw-bold text-gray-900 text-xs">{{ plan.product.name }}</td>
+
+                        <!-- ماشین -->
+                        <td class="text-xs text-muted">{{ plan.machine.name }}</td>
+
+                        <!-- اپراتور -->
+                        <td class="text-xs text-muted">{{ plan.operator.first_name }} {{ plan.operator.last_name }}</td>
+                        
+                        <!-- مرحله کاری -->
+                        <td class="text-center">
+                            <span class="badge bg-secondary-subtle text-secondary py-1 px-2 rounded-2 text-xxs fw-bold">
+                                {{ plan.stage.name }}
+                            </span>
+                        </td>
+                        
+                        <!-- هدف تولید -->
+                        <td class="text-center font-mono text-xs fw-bold text-dark">{{ plan.target_quantity|floatformat:0 }}</td>
+
+                        <!-- تولید شده -->
+                        <td class="text-center font-mono text-xs fw-bold text-success">{{ plan.produced_quantity|floatformat:0 }}</td>
+
+                        <!-- کسری انبار -->
+                        <td class="text-center text-xs">
+                            {% if plan.material_deducted %}
+                            <span class="badge bg-success-subtle text-success py-1 px-2 rounded-2 text-xxs fw-bold">
+                                <i data-feather="check" style="width: 10px; height: 10px;"></i> کسر شده
+                            </span>
+                            {% else %}
+                            <span class="badge bg-warning-subtle text-warning py-1 px-2 rounded-2 text-xxs fw-bold">
+                                <i data-feather="clock" style="width: 10px; height: 10px;"></i> در انتظار
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- بازه زمانی -->
+                        <td class="text-center">
+                            <div class="font-mono text-xxs text-muted">از {{ plan.start_date|date:"Y/m/d" }}</div>
+                            <div class="font-mono text-xxs text-muted">تا {{ plan.end_date|date:"Y/m/d" }}</div>
+                        </td>
+
+                        <!-- وضعیت -->
+                        <td class="text-center">
+                            {% if plan.status == 'pending' %}
+                            <span class="badge bg-secondary-subtle text-secondary py-1 px-2 rounded-2 text-xxs fw-bold">در انتظار</span>
+                            {% elif plan.status == 'producing' %}
+                            <span class="badge bg-info-subtle text-info py-1 px-2 rounded-2 text-xxs fw-bold">در حال تولید</span>
+                            {% elif plan.status == 'completed' %}
+                            <span class="badge bg-success-subtle text-success py-1 px-2 rounded-2 text-xxs fw-bold">تکمیل شده</span>
+                            {% elif plan.status == 'suspended' %}
+                            <span class="badge bg-danger-subtle text-danger py-1 px-2 rounded-2 text-xxs fw-bold">متوقف شده</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- عملیات -->
+                        <td class="pe-4 text-center">
+                            <div class="d-flex justify-content-center gap-1.5">
+                                <a href="{% url 'production:planning_detail' plan.pk %}" class="btn-edit" style="background-color: rgba(79, 70, 229, 0.08) !important; color: var(--accent) !important;">
+                                    <i data-feather="eye" style="width: 12px; height: 12px;"></i> جزئیات
+                                </a>
+                                <a href="{% url 'production:planning_edit' plan.pk %}" class="btn-edit">
+                                    <i data-feather="edit-2" style="width: 12px; height: 12px;"></i> ویرایش
+                                </a>
+                                <a href="{% url 'production:planning_delete' plan.pk %}" class="btn-delete">
+                                    <i data-feather="trash-2" style="width: 12px; height: 12px;"></i> حذف
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- صفحه‌بندی -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer bg-white border-top p-3 d-flex justify-content-center">
+            <nav aria-label="صفحه‌بندی">
+                <div class="d-flex align-items-center gap-2">
+                    {% if page_obj.has_previous %}
+                        <a class="btn btn-outline-soft py-1.5 px-3 text-xs fw-bold" href="?page={{ page_obj.previous_page_number }}&q={{ query|default:'' }}&status={{ status_filter|default:'' }}">قبلی</a>
+                    {% endif %}
+                    
+                    <span class="text-muted text-xs px-2">صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span>
+                    
+                    {% if page_obj.has_next %}
+                        <a class="btn btn-outline-soft py-1.5 px-3 text-xs fw-bold" href="?page={{ page_obj.next_page_number }}&q={{ query|default:'' }}&status={{ status_filter|default:'' }}">بعدی</a>
+                    {% endif %}
+                </div>
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-2">
+                <i data-feather="calendar" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+            </div>
+            <h6 class="fw-bold m-0 text-xs text-dark">هیچ برنامه‌ریزی فعالی یافت نشد</h6>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

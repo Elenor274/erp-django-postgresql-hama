@@ -1,0 +1,38 @@
+{% extends "core/base.html" %}
+
+{% block title %}حذف محصول{% endblock %}
+{% block page_title %}حذف محصول{% endblock %}
+
+{% block content %}
+
+<div class="card-custom" style="max-width:600px; margin:auto;">
+
+    <h5 class="mb-3" style="font-weight:600;">حذف محصول</h5>
+
+    <p class="text-muted" style="font-size:0.9rem;">
+        آیا مطمئن هستید که می‌خواهید محصول  
+        <strong>{{ product.name }}</strong>
+        با کد  
+        <strong>{{ product.code }}</strong>
+        را حذف کنید؟
+    </p>
+
+    <form method="post" action="{% url 'products:product_delete' product.pk %}">
+        {% csrf_token %}
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn-delete">
+                <i data-feather="trash-2"></i>
+                حذف محصول
+            </button>
+
+            <a href="{% url 'products:product_list' %}" class="btn-edit">
+                <i data-feather="x"></i>
+                انصراف
+            </a>
+        </div>
+    </form>
+
+</div>
+
+{% endblock %}

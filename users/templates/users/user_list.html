@@ -1,0 +1,125 @@
+{% extends 'core/base.html' %}
+
+{% block title %}مدیریت کاربران - حاما پارچه{% endblock %}
+
+{% block page_title %}مدیریت کاربران{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">میز کار</a></li>
+<li class="breadcrumb-item active" aria-current="page">مدیریت کاربران</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1 text-slate font-bold" style="font-weight: 700;">فهرست کاربران سامانه</h4>
+        <p class="text-muted text-xs mb-0">تعریف کاربران جدید و تخصیص سطوح دسترسی به بخش‌های مختلف سیستم</p>
+    </div>
+    <a href="{% url 'users:user_create' %}" class="btn-primary-custom">
+        <i data-feather="plus"></i>
+        <span>ایجاد کاربر جدید</span>
+    </a>
+</div>
+
+<div class="card-custom">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>نام کاربری</th>
+                    <th>نام و نام خانوادگی</th>
+                    <th>ایمیل</th>
+                    <th class="text-center">دسترسی‌ها</th>
+                    <th class="text-center">نقش</th>
+                    <th class="text-end">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users_list %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-circle-sm" style="display: inline-flex; width: 34px; height: 34px; border-radius: 50%; background-color: rgba(79, 70, 229, 0.08); color: var(--accent); justify-content: center; align-items: center; font-size: 13px; font-weight: 700;">
+                                {{ u.username|slice:":1"|upper }}
+                            </div>
+                            <span class="font-bold text-slate">{{ u.username }}</span>
+                        </div>
+                    </td>
+                    <td>{{ u.get_full_name|default:"—" }}</td>
+                    <td>{{ u.email|default:"—" }}</td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center flex-wrap gap-1">
+                            {% if u.is_superuser %}
+                            <span class="badge bg-danger text-white text-xxs">دسترسی کامل (مدیر کل)</span>
+                            {% else %}
+                                {% if u.userprofile.access_orders %}
+                                <span class="badge text-success text-xxs" style="background-color: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15)">سفارشات</span>
+                                {% endif %}
+                                {% if u.userprofile.access_customers %}
+                                <span class="badge text-primary text-xxs" style="background-color: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.15)">مشتریان</span>
+                                {% endif %}
+                                {% if u.userprofile.access_products %}
+                                <span class="badge text-info text-xxs" style="background-color: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.15)">محصولات</span>
+                                {% endif %}
+                                {% if u.userprofile.access_warehouse %}
+                                <span class="badge text-warning text-xxs" style="background-color: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.15)">انبار</span>
+                                {% endif %}
+                                {% if u.userprofile.access_production %}
+                                <span class="badge text-purple text-xxs" style="background-color: rgba(147, 51, 234, 0.08); border: 1px solid rgba(147, 51, 234, 0.15); color: rgb(147, 51, 234);">تولید</span>
+                                {% endif %}
+                                {% if u.userprofile.access_reports %}
+                                <span class="badge text-secondary text-xxs" style="background-color: rgba(100, 116, 139, 0.08); border: 1px solid rgba(100, 116, 139, 0.15)">گزارشات</span>
+                                {% endif %}
+                                {% if u.userprofile.is_admin_user %}
+                                <span class="badge text-danger text-xxs" style="background-color: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15)">مدیر کاربران</span>
+                                {% endif %}
+                                {% if not u.userprofile.access_orders and not u.userprofile.access_customers and not u.userprofile.access_products and not u.userprofile.access_warehouse and not u.userprofile.access_production and not u.userprofile.access_reports and not u.userprofile.is_admin_user %}
+                                <span class="badge bg-light text-muted text-xxs">بدون دسترسی</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        {% if u.is_superuser %}
+                        <span class="badge bg-danger text-white">مدیر ارشد</span>
+                        {% elif u.userprofile.is_admin_user %}
+                        <span class="badge text-warning" style="background-color: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.15)">مدیر سیستم</span>
+                        {% else %}
+                        <span class="badge bg-light text-slate">کاربر عادی</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1.5">
+                            <a href="{% url 'users:user_change_password' u.id %}" class="btn-edit" style="background-color: rgba(59, 130, 246, 0.08) !important; color: #3b82f6 !important; border-color: rgba(59, 130, 246, 0.12) !important;">
+                                <i data-feather="key" style="width: 14px; height: 14px;"></i>تغییر رمز
+                            </a>
+                            <a href="{% url 'users:user_edit' u.id %}" class="btn-edit">
+                                <i data-feather="edit" style="width: 14px; height: 14px;"></i>ویرایش
+                            </a>
+                            {% if u != request.user %}
+                            <a href="{% url 'users:user_delete' u.id %}" class="btn-delete">
+                                <i data-feather="trash-2" style="width: 14px; height: 14px;"></i>حذف
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="text-muted">کاربری در سیستم یافت نشد.</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.text-xxs {
+    font-size: 0.72rem !important;
+    padding: 4px 8px !important;
+}
+</style>
+{% endblock %}

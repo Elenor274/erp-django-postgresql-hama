@@ -1,0 +1,110 @@
+{% extends "core/base.html" %}
+
+{% block title %}سفارشات فروش - حاما پارچه{% endblock %}
+{% block page_title %}داشبورد مدیریت سفارشات{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item active" aria-current="page">سفارشات فروش</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up">
+
+    <!-- بنر راهنمای بالای صفحه -->
+    <div class="card-custom mb-4 p-4 position-relative overflow-hidden border-0 shadow-sm" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-right: 4px solid var(--accent) !important;">
+        <div class="position-absolute" style="left: -15px; top: -15px; opacity: 0.05; pointer-events: none;">
+            <i data-feather="shopping-bag" style="width: 140px; height: 140px; stroke-width: 1;"></i>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <h5 class="fw-bold text-gray-900 mb-1.5" style="font-size: 1.15rem; letter-spacing: -0.02em;">سیستم رهگیری و ثبت سفارشات فروش</h5>
+                <p class="text-muted text-xs mb-0 leading-relaxed">ثبت، صدور پیش‌فاکتور، تخصیص اقلام تولیدی کارخانجات نساجی و پیگیری وضعیت ارسال مرسوله‌ها و تعهدات مشتریان.</p>
+            </div>
+            <div class="col-md-3 text-md-end mt-3 mt-md-0 d-flex flex-column align-items-md-end gap-2 justify-content-center">
+                <a href="{% url 'orders:order_create' %}" class="btn btn-primary text-white d-inline-flex align-items-center gap-1.5 py-2 px-3.5 rounded-3 border-0 text-xs fw-bold font-sans" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); width: fit-content;">
+                    <i data-feather="plus-circle" style="width: 15px; height: 15px;"></i> ثبت سفارش جدید
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول نمایش سفارشات -->
+    <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="border: none;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">کد سفارش</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نام مشتری</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 100px;">تعداد اقلام</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">مبلغ کل فاکتور (ریال)</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 130px;">وضعیت سفارش</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 130px;">تاریخ ثبت</th>
+                        <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 280px;">عملیات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <!-- کد سفارش -->
+                        <td class="ps-4 font-mono text-xs text-muted fw-bold">#{{ order.order_code }}</td>
+                        
+                        <!-- مشتری -->
+                        <td class="fw-bold text-gray-900 text-xs">{{ order.customer.name }} {{ order.customer.last_name }}</td>
+                        
+                        <!-- تعداد آیتم -->
+                        <td class="text-center font-mono text-xs">
+                            <span class="px-2 py-1 bg-light rounded-2 border text-muted">{{ order.items.count }} قلم</span>
+                        </td>
+                        
+                        <!-- مبلغ کل -->
+                        <td class="text-center font-mono text-xs fw-bold text-success">
+                            {{ order.total_amount|floatformat:0|default:"0" }}
+                        </td>
+                        
+                        <!-- وضعیت -->
+                        <td class="text-center text-xs">
+                            <span class="badge px-2.5 py-1 rounded-3 text-xxs fw-bold bg-success-subtle text-success border border-success-subtle">
+                                {{ order.get_status_display }}
+                            </span>
+                        </td>
+
+                        <!-- تاریخ ثبت -->
+                        <td class="text-center font-mono text-xs text-muted">{{ order.created_at|date:"Y/m/d" }}</td>
+
+                        <!-- عملیات -->
+                        <td class="pe-4 text-center">
+                            <div class="d-flex justify-content-center gap-1.5">
+                                <a href="{% url 'orders:order_detail' order.id %}" class="btn-edit" style="background-color: rgba(79, 70, 229, 0.08) !important; color: var(--accent) !important;">
+                                    <i data-feather="eye" style="width: 12px; height: 12px;"></i> مشاهده
+                                </a>
+                                <a href="{% url 'orders:order_edit' order.id %}" class="btn-edit">
+                                    <i data-feather="edit-2" style="width: 12px; height: 12px;"></i> ویرایش
+                                </a>
+                                <a href="{% url 'orders:order_delete' order.id %}" class="btn-delete" onclick="return confirm('آیا از حذف این سفارش مطمئن هستید؟ با حذف سفارش اقلام تخصیص داده شده نیز لغو خواهند شد.');">
+                                    <i data-feather="trash-2" style="width: 12px; height: 12px;"></i> حذف
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <div class="mb-2">
+                                <i data-feather="shopping-bag" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+                            </div>
+                            <h6 class="fw-bold m-0 text-xs text-dark">هیچ سفارشی یافت نشد</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,193 @@
+{% extends "core/base.html" %}
+
+{% block title %}ایجاد سفارش{% endblock %}
+{% block page_title %}ایجاد سفارش{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ظاهر کلی فیلدها */
+    .item-box input,
+    .item-box select {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+        border: 1px solid #dcdcdc;
+        border-radius: 6px;
+        background: #fff;
+        width: 100%;
+    }
+
+    /* فاصله بین فیلدها */
+    .field-wrapper {
+        margin-bottom: 14px;
+        margin-right: 14px;
+    }
+
+    /* چیدمان مینیمال */
+    @media (min-width: 768px) {
+        .item-col-product  { flex: 0 0 28%; max-width: 28%; }
+        .item-col-quantity { flex: 0 0 12%; max-width: 12%; }
+        .item-col-weight   { flex: 0 0 12%; max-width: 12%; }
+        .item-col-length   { flex: 0 0 12%; max-width: 12%; }
+        .item-col-width    { flex: 0 0 12%; max-width: 12%; }
+    }
+
+    /* ظاهر باکس آیتم‌ها */
+    .item-box {
+        background: #fafafa;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+    }
+</style>
+
+<div class="card-custom" style="max-width:900px; margin:auto;">
+
+    <h5 class="mb-4" style="font-weight:600;">ثبت سفارش جدید</h5>
+
+    {# فرم با کلاس no-autofill و autocomplete="off" #}
+    <form method="post" class="no-autofill" autocomplete="off" novalidate>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        {# --- فیلدهای فیک برای خنثی کردن autofill مرورگر (باید قبل از فیلدهای واقعی باشند) --- #}
+        <input type="text" name="__fake_text" id="__fake_text" style="display:none" autocomplete="off" />
+        <input type="password" name="__fake_pwd" id="__fake_pwd" style="display:none" autocomplete="new-password" />
+
+        <!-- اطلاعات کلی -->
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                {{ form.order_code.label_tag }}
+                {{ form.order_code }}
+            </div>
+
+            <div class="col-md-4 mb-3">
+                {{ form.customer.label_tag }}
+                {{ form.customer }}
+            </div>
+
+            <div class="col-md-4 mb-3">
+                {{ form.status.label_tag }}
+                {{ form.status }}
+            </div>
+        </div>
+
+        <div class="mb-3">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+        </div>
+
+        <hr class="my-4">
+
+        <h6 class="mb-3">آیتم‌های سفارش</h6>
+
+        {{ formset.management_form }}
+
+        {% for item_form in formset %}
+        <div class="item-box p-3 mb-3">
+
+            <div class="d-flex flex-wrap">
+
+                <div class="field-wrapper item-col-product">
+                    {{ item_form.product.label_tag }}
+                    {{ item_form.product }}
+                </div>
+
+                <div class="field-wrapper item-col-quantity">
+                    {{ item_form.quantity.label_tag }}
+                    {{ item_form.quantity }}
+                </div>
+
+                <div class="field-wrapper item-col-weight">
+                    {{ item_form.weight.label_tag }}
+                    {{ item_form.weight }}
+                </div>
+
+                <div class="field-wrapper item-col-length">
+                    {{ item_form.length.label_tag }}
+                    {{ item_form.length }}
+                </div>
+
+                <div class="field-wrapper item-col-width">
+                    {{ item_form.width.label_tag }}
+                    {{ item_form.width }}
+                </div>
+
+            </div>
+
+        </div>
+        {% endfor %}
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn-primary-custom">
+                <i data-feather="save"></i>
+                ثبت سفارش
+            </button>
+
+            <a href="{% url 'orders:order_list' %}" class="btn-edit">
+                <i data-feather="arrow-right"></i>
+                بازگشت
+            </a>
+        </div>
+
+    </form>
+</div>
+
+{# --- اسکریپت تضمینی برای خاموش کردن autocomplete و محافظت در برابر autofill کروم --- #}
+<script>
+(function(){
+  // اعمال تنظیمات روی فرم‌های موجود و فرم‌هایی که بعداً اضافه می‌شوند (مثلاً فرم‌ست داینامیک)
+  function hardenNoAutofill(form){
+    if(!form) return;
+
+    // صریحاً autocomplete فرم را خاموش کن
+    try { form.setAttribute('autocomplete','off'); } catch(e){}
+
+    // اگر فیلدهای فیک وجود ندارند، اضافه‌شان کن
+    if(!form.querySelector('input[name="__fake_text"]')){
+      const fakeText = document.createElement('input');
+      fakeText.type = 'text';
+      fakeText.name = '__fake_text';
+      fakeText.style.display = 'none';
+      fakeText.autocomplete = 'off';
+      form.prepend(fakeText);
+    }
+    if(!form.querySelector('input[name="__fake_pwd"]')){
+      const fakePwd = document.createElement('input');
+      fakePwd.type = 'password';
+      fakePwd.name = '__fake_pwd';
+      fakePwd.style.display = 'none';
+      fakePwd.autocomplete = 'new-password';
+      form.prepend(fakePwd);
+    }
+
+    // روی همهٔ input, textarea, select داخل فرم autocomplete="off" بگذار
+    form.querySelectorAll('input, textarea, select').forEach(function(el){
+      // اگر توسعه‌دهنده خواسته مرورگر خودش پر کند، می‌تواند data-keep-autocomplete را بگذارد
+      if(!el.hasAttribute('data-keep-autocomplete')){
+        try { el.setAttribute('autocomplete','off'); } catch(e){}
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    // اعمال اولیه
+    document.querySelectorAll('form.no-autofill').forEach(hardenNoAutofill);
+
+    // اگر فرم‌ها به صورت داینامیک اضافه شوند (مثلاً با JS یا HTMX)، آنها را هم پوشش بده
+    const observer = new MutationObserver(function(mutations){
+      mutations.forEach(function(m){
+        m.addedNodes.forEach(function(node){
+          if(node.nodeType !== 1) return;
+          if(node.matches && node.matches('form.no-autofill')) hardenNoAutofill(node);
+          if(node.querySelectorAll){
+            node.querySelectorAll('form.no-autofill').forEach(hardenNoAutofill);
+          }
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "core/base.html" %}
+
+{% block title %}ثبت رسید ورودی - انبار {{ warehouse.name }} - حاما پارچه{% endblock %}
+{% block page_title %}ورود کالا به انبار {{ warehouse.name }}{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'warehouse:warehouse_list' %}">مدیریت انبارها</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'warehouse:warehouse_detail' warehouse.id %}">انبار {{ warehouse.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">ثبت رسید ورودی</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up max-w-3xl mx-auto">
+
+    <!-- کارت فرم اصلی با طراحی مدرن و شیک دسکتاپی -->
+    <div class="card-custom bg-white p-4 border-0 shadow-sm rounded-4" style="border-top: 4px solid #10b981 !important;">
+        
+        <!-- هدر فرم -->
+        <div class="border-bottom pb-3 mb-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="fw-bold text-success mb-1 d-flex align-items-center gap-2">
+                    <i data-feather="arrow-down-left" style="width: 20px; height: 20px; stroke-width: 2.5;"></i>
+                    ثبت رسید انبار (ورود کالا)
+                </h5>
+                <p class="text-muted text-xs mb-0">با ثبت این رسید، موجودی کالا در انبار به صورت آنی و خودکار افزایش می‌یابد.</p>
+            </div>
+            <span class="badge bg-success-subtle text-success py-1.5 px-3 rounded-pill text-xs font-mono">
+                شناسه انبار: {{ warehouse.code }}
+            </span>
+        </div>
+
+        {% if form.errors %}
+        <div class="alert alert-danger p-3 rounded-3 mb-4 text-xs">
+            <strong class="d-block mb-1.5">خطاهای ثبت فرم را تصحیح فرمایید:</strong>
+            <ul class="mb-0 ps-3">
+                {% for field in form %}
+                    {% if field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ field.errors.0 }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" class="no-autofill">
+            {% csrf_token %}
+
+            <!-- بخش اول: جزئیات کالا و مقدار -->
+            <div class="p-3.5 bg-light rounded-4 mb-4 border border-light" style="background-color: #f8fafc !important;">
+                <h6 class="fw-bold text-gray-800 text-xs mb-3.5 d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px; font-weight: 700;">۱</span>
+                    مشخصات کالا و مقادیر ورودی فیزیکی
+                </h6>
+                <div class="row g-3">
+                    <!-- انتخاب کالا -->
+                    <div class="col-md-6">
+                        <label for="{{ form.product.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">کالا / محصول هدف*</label>
+                        {{ form.product }}
+                        <span class="text-xxs text-muted d-block mt-1">نام کالایی که وارد انبار می‌شود را انتخاب کنید</span>
+                    </div>
+
+                    <!-- مقدار ورودی -->
+                    <div class="col-md-3">
+                        <label for="{{ form.quantity.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">مقدار ورودی*</label>
+                        {{ form.quantity }}
+                        <span class="text-xxs text-muted d-block mt-1">فقط عدد یا ممیز وارد کنید</span>
+                    </div>
+
+                    <!-- واحد اندازه‌گیری -->
+                    <div class="col-md-3">
+                        <label for="{{ form.unit.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">واحد اندازه‌گیری*</label>
+                        {{ form.unit }}
+                        <span class="text-xxs text-muted d-block mt-1">مثال: متر، کیلو، عدد</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- بخش دوم: سند و ردیابی -->
+            <div class="p-3.5 bg-light rounded-4 mb-4 border border-light" style="background-color: #f8fafc !important;">
+                <h6 class="fw-bold text-gray-800 text-xs mb-3.5 d-flex align-items-center gap-2">
+                    <span class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center" style="width: 20px; height: 20px; font-size: 10px; font-weight: 700;">۲</span>
+                    اطلاعات مرجع، سند و تأمین‌کننده
+                </h6>
+                <div class="row g-3">
+                    <!-- نام تامین کننده -->
+                    <div class="col-md-6">
+                        <label for="{{ form.supplier_name.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">نام تأمین‌کننده / مبدأ بارگیری</label>
+                        {{ form.supplier_name }}
+                        <span class="text-xxs text-muted d-block mt-1">اختیاری - برای مصارف خریدهای داخلی/خارجی</span>
+                    </div>
+
+                    <!-- نوع تراکنش -->
+                    <div class="col-md-6">
+                        <label for="{{ form.transaction_category.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">دسته‌بندی و علت ورود کالا*</label>
+                        {{ form.transaction_category }}
+                        <span class="text-xxs text-muted d-block mt-1">بایگانی تراکنش بر اساس این دسته‌بندی انجام خواهد شد</span>
+                    </div>
+
+                    <!-- تاریخ تحویل -->
+                    <div class="col-md-4">
+                        <label for="{{ form.delivery_date.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">تاریخ تحویل فیزیکی</label>
+                        {{ form.delivery_date }}
+                        <span class="text-xxs text-muted d-block mt-1">تاریخ تخلیه کالا در محوطه انبار</span>
+                    </div>
+
+                    <!-- مرجع -->
+                    <div class="col-md-4">
+                        <label for="{{ form.reference.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">شماره مرجع (سفارش / فاکتور)</label>
+                        {{ form.reference }}
+                        <span class="text-xxs text-muted d-block mt-1">شماره رسید بارنامه، سفارش یا فاکتور خرید</span>
+                    </div>
+
+                    <!-- مانده سفارش -->
+                    <div class="col-md-4">
+                        <label for="{{ form.order_remaining.id_for_label }}" class="form-label text-xs fw-bold text-gray-700 mb-1.5">مانده تعهد سفارش</label>
+                        {{ form.order_remaining }}
+                        <span class="text-xxs text-muted d-block mt-1">در صورت تحویل بخشی از سفارش</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- دکمه‌های کنترل -->
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                <a href="{% url 'warehouse:warehouse_detail' warehouse.id %}" class="btn btn-outline-soft py-2 px-3 text-xs fw-bold">انصراف و لغو</a>
+                <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-1.5 px-4 font-sans font-bold text-white rounded-3 border-0 py-2 text-xs" style="background: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+                    <i data-feather="check" style="width: 15px; height: 15px;"></i> ثبت سند ورودی کالا
+                </button>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<!-- اتوبایندر برای فیلدهای سریع کوئری فرم (مثلاً انتخاب خودکار محصول از تب داشبورد) -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('product_id');
+        if (productId) {
+            const selectEl = document.querySelector('select[name="product"]');
+            if (selectEl) {
+                selectEl.value = productId;
+            }
+        }
+    });
+</script>
+{% endblock %}

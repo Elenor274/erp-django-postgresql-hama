@@ -1,0 +1,183 @@
+{% extends 'core/base.html' %}
+
+{% block title %}ویرایش برنامه‌ریزی تولید - حاما <span style="color:var(--accent)">پارچه</span>{% endblock %}
+{% block page_title %}ویرایش برنامه‌ریزی: {{ plan.planning_code }}{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'production:planning_list' %}">برنامه‌ریزی تولید</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'production:planning_detail' plan.pk %}">{{ plan.planning_code }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">ویرایش برنامه‌ریزی</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="card-custom max-w-4xl mx-auto fade-in-up">
+  <div class="border-bottom pb-3 mb-4">
+    <h3 class="h5 mb-0">فرم ویرایش برنامه‌ریزی و زمان‌بندی تولید</h3>
+    <p class="text-muted text-xs mt-1 mb-0">لطفاً مقادیر و وضعیت زمان‌بندی تولید را ویرایش نمایید.</p>
+  </div>
+
+  <form method="post" class="no-autofill">
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+      {% for error in form.non_field_errors %}
+        {{ error }}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row g-3">
+      <!-- کد برنامه‌ریزی و سفارش مرتبط -->
+      <div class="col-md-6">
+        <label for="{{ form.planning_code.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.planning_code.label }}</label>
+        {{ form.planning_code }}
+        {% if form.planning_code.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.planning_code.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        <label for="{{ form.order.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.order.label }}</label>
+        {{ form.order }}
+        {% if form.order.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.order.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <!-- محصول و مرحله کاری -->
+      <div class="col-md-6">
+        <label for="{{ form.product.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.product.label }}</label>
+        {{ form.product }}
+        {% if form.product.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.product.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        <label for="{{ form.stage.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.stage.label }}</label>
+        {{ form.stage }}
+        {% if form.stage.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.stage.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <!-- ماشین و اپراتور -->
+      <div class="col-md-6">
+        <label for="{{ form.machine.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.machine.label }}</label>
+        {{ form.machine }}
+        {% if form.machine.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.machine.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        <label for="{{ form.operator.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.operator.label }}</label>
+        {{ form.operator }}
+        {% if form.operator.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.operator.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="col-12"><hr class="my-3"></div>
+
+      <!-- مواد اولیه مصرفی و مقدار آن -->
+      <div class="col-md-4">
+        <label for="{{ form.raw_material.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.raw_material.label }}</label>
+        {{ form.raw_material }}
+        {% if form.raw_material.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.raw_material.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-4">
+        <label for="{{ form.raw_material_qty.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.raw_material_qty.label }}</label>
+        {{ form.raw_material_qty }}
+        {% if form.raw_material_qty.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.raw_material_qty.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-4">
+        <label for="{{ form.warehouse.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.warehouse.label }}</label>
+        {{ form.warehouse }}
+        {% if form.warehouse.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.warehouse.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="col-12"><hr class="my-3"></div>
+
+      <!-- مقادیر تولید هدف و واقعی -->
+      <div class="col-md-6">
+        <label for="{{ form.target_quantity.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.target_quantity.label }}</label>
+        {{ form.target_quantity }}
+        {% if form.target_quantity.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.target_quantity.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        <label for="{{ form.produced_quantity.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.produced_quantity.label }}</label>
+        {{ form.produced_quantity }}
+        {% if form.produced_quantity.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.produced_quantity.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <!-- بازه زمانی شروع و پایان -->
+      <div class="col-md-6">
+        <label for="{{ form.start_date.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.start_date.label }}</label>
+        <!-- به صورت پیش‌فرض فیلدهای نوع تاریخ در قالب‌های ویرایش باید با کلاس‌ها تنظیم شوند -->
+        <input type="date" name="start_date" id="id_start_date" value="{{ plan.start_date|date:'Y-m-d' }}" class="form-control-custom">
+        {% if form.start_date.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.start_date.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        <label for="{{ form.end_date.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.end_date.label }}</label>
+        <input type="date" name="end_date" id="id_end_date" value="{{ plan.end_date|date:'Y-m-d' }}" class="form-control-custom">
+        {% if form.end_date.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.end_date.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <!-- وضعیت -->
+      <div class="col-md-12">
+        <label for="{{ form.status.id_for_label }}" class="form-label font-sans font-medium text-xs text-gray-500">{{ form.status.label }}</label>
+        {{ form.status }}
+        {% if form.status.errors %}
+          <div class="text-danger text-xs mt-1">{{ form.status.errors.0 }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+      <a href="{% url 'production:planning_detail' plan.pk %}" class="btn btn-outline-soft">انصراف</a>
+      <button type="submit" class="btn btn-primary-custom px-4">ذخیره تغییرات</button>
+    </div>
+  </form>
+</div>
+
+<!-- برخی استایل‌های ضروری برای فیلدها -->
+<style>
+  .form-control-custom {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--text);
+    background-color: var(--panel);
+    background-clip: padding-box;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+  }
+  .form-control-custom:focus {
+    color: var(--text);
+    background-color: var(--panel);
+    border-color: var(--accent);
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(11, 102, 255, 0.1);
+  }
+</style>
+{% endblock %}

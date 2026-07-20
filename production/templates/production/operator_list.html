@@ -1,0 +1,104 @@
+{% extends "core/base.html" %}
+
+{% block title %}مدیریت اپراتورها و پرسنل تولید - حاما پارچه{% endblock %}
+{% block page_title %}شناسنامه پرسنل فنی و اپراتورهای خطوط تولید{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item active" aria-current="page">اپراتورها</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up">
+
+    <!-- بنر راهنما -->
+    <div class="card-custom mb-4 p-4 position-relative overflow-hidden border-0 shadow-sm" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-right: 4px solid var(--accent) !important;">
+        <div class="position-absolute" style="left: -15px; top: -15px; opacity: 0.05; pointer-events: none;">
+            <i data-feather="users" style="width: 140px; height: 140px; stroke-width: 1;"></i>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <h5 class="fw-bold text-gray-900 mb-1.5" style="font-size: 1.15rem; letter-spacing: -0.02em;">سیستم پایش حضور غیاب و تخصص پرسنل تولید</h5>
+                <p class="text-muted text-xs mb-0 leading-relaxed">تعریف پرونده‌های کاری برای پرسنل فنی، اساتید بافندگی، مهندسین ناظر، تکنسین‌های مکانیک و اپراتورهای عهده‌دار ردیف‌های تعمیراتی و برنامه‌ریزی تولید.</p>
+            </div>
+            <div class="col-md-3 text-md-end mt-3 mt-md-0 d-flex flex-column align-items-md-end gap-2 justify-content-center">
+                <a href="{% url 'production:operator_create' %}" class="btn btn-primary text-white d-inline-flex align-items-center gap-1.5 py-2 px-3.5 rounded-3 border-0 text-xs fw-bold font-sans" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); width: fit-content;">
+                    <i data-feather="user-plus" style="width: 15px; height: 15px;"></i> تعریف اپراتور جدید
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول اپراتورها -->
+    <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+        {% if operators %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="border: none;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">کد شناسایی پرسنلی</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نام و نام خانوادگی</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 180px;">شماره تماس ثابت/همراه</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 140px;">وضعیت حضور/آماده‌باش</th>
+                        <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 220px;">عملیات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for operator in operators %}
+                    <tr>
+                        <!-- کد اپراتور -->
+                        <td class="ps-4 font-mono text-xs text-muted fw-bold">#{{ operator.operator_code }}</td>
+                        
+                        <!-- نام و نام خانوادگی -->
+                        <td class="fw-bold text-gray-900 text-xs">
+                            <span class="avatar-circle-sm" style="display: inline-flex; width: 28px; height: 28px; border-radius: 50%; background-color: rgba(79, 70, 229, 0.08); color: var(--accent); justify-content: center; align-items: center; font-size: 11px; margin-left: 8px;">
+                                {{ operator.first_name|slice:":1" }}
+                            </span>
+                            {{ operator.first_name }} {{ operator.last_name }}
+                        </td>
+                        
+                        <!-- شماره تماس -->
+                        <td class="text-center font-mono text-xs text-muted">{{ operator.phone_number|default:"—" }}</td>
+                        
+                        <!-- وضعیت حضور -->
+                        <td class="text-center">
+                            {% if operator.status == 'active' %}
+                                <span class="badge bg-success-subtle text-success py-1 px-2.5 rounded-2 text-xxs fw-bold border border-success-subtle">حاضر در نوبت کاری</span>
+                            {% elif operator.status == 'leave' %}
+                                <span class="badge bg-warning-subtle text-warning py-1 px-2.5 rounded-2 text-xxs fw-bold border border-warning-subtle">مرخصی مصوب</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger py-1 px-2.5 rounded-2 text-xxs fw-bold border border-danger-subtle">غیرفعال / پایان کار</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- عملیات -->
+                        <td class="pe-4 text-center">
+                            <div class="d-flex justify-content-center gap-1.5">
+                                <a href="{% url 'production:operator_edit' operator.pk %}" class="btn-edit">
+                                    <i data-feather="edit-2" style="width: 12px; height: 12px;"></i> ویرایش
+                                </a>
+                                <a href="{% url 'production:operator_delete' operator.pk %}" class="btn-delete">
+                                    <i data-feather="trash-2" style="width: 12px; height: 12px;"></i> حذف
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-2">
+                <i data-feather="users" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+            </div>
+            <h6 class="fw-bold m-0 text-xs text-dark">اپراتوری در سامانه ثبت نشده است</h6>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

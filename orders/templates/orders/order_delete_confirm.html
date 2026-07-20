@@ -1,0 +1,13 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<h3>آیا از حذف این سفارش مطمئن هستید؟</h3>
+
+<p>شماره سفارش: {{ order.id }}</p>
+
+<form method="post" action="{% url 'orders:order_delete' order.id %}">
+    {% csrf_token %}
+    <button class="btn btn-danger">حذف</button>
+    <a href="{% url 'orders:order_list' %}" class="btn btn-secondary">انصراف</a>
+</form>
+{% endblock %}

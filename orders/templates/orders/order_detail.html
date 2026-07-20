@@ -1,0 +1,124 @@
+{% extends "core/base.html" %}
+
+{% block title %}سند سفارش فروش #{{ order.order_code }} - حاما پارچه{% endblock %}
+{% block page_title %}شناسنامه و سند سفارش فروش{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'orders:order_list' %}">سفارشات فروش</a></li>
+  <li class="breadcrumb-item active" aria-current="page">سفارش #{{ order.order_code }}</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up" style="max-width: 1000px; margin: auto;">
+
+    <!-- سند سفارش اصلی -->
+    <div class="card-custom bg-white p-4 mb-4 border-0 shadow-sm rounded-4 position-relative overflow-hidden">
+        
+        <!-- واتر مارک کمرنگ پس زمینه -->
+        <div class="position-absolute" style="left: -15px; top: -15px; opacity: 0.05; pointer-events: none;">
+            <i data-feather="shopping-bag" style="width: 150px; height: 150px; stroke-width: 1;"></i>
+        </div>
+
+        <div class="row align-items-center mb-4">
+            <div class="col-md-7">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 bg-teal-subtle text-teal rounded-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px; background-color: rgba(79, 70, 229, 0.08);">
+                        <i data-feather="file-text" style="width: 28px; height: 28px; color: var(--accent);"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold text-gray-900 mb-1" style="font-size: 1.25rem;">سند سفارش فروش #{{ order.order_code }}</h4>
+                        <span class="badge bg-success-subtle text-success py-1 px-2.5 rounded-2 text-xxs fw-bold">وضعیت: {{ order.get_status_display }}</span>
+                        <span class="badge bg-secondary-subtle text-secondary py-1 px-2.5 rounded-2 text-xxs fw-bold me-2">ثبت شده در سیستم</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 text-md-end mt-3 mt-md-0 d-flex justify-content-md-end gap-2">
+                <a href="{% url 'orders:order_edit' order.id %}" class="btn btn-outline-soft d-inline-flex align-items-center gap-1.5 py-2 px-3 text-xs fw-bold">
+                    <i data-feather="edit" style="width: 14px; height: 14px;"></i> ویرایش سفارش
+                </a>
+                <a href="{% url 'orders:order_list' %}" class="btn btn-outline-soft d-inline-flex align-items-center gap-1.5 py-2 px-3 text-xs fw-bold">
+                     بازگشت به لیست سفارشات
+                </a>
+            </div>
+        </div>
+
+        <hr class="my-4" style="border-color: #f1f5f9;">
+
+        <!-- خلاصه اطلاعات طرفین و قرارداد -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4 col-sm-6">
+                <div class="p-3 bg-light rounded-3 border h-100">
+                    <span class="text-muted text-xxs d-block mb-1.5 fw-bold text-uppercase">اطلاعات خریدار (مشتری)</span>
+                    <strong class="text-dark font-sans text-xs d-block mb-1">{{ order.customer.name }} {{ order.customer.last_name }}</strong>
+                    <span class="text-muted text-xxs font-mono"><i data-feather="phone" style="width:11px; height:11px; vertical-align:middle;"></i> {{ order.customer.phone_number }}</span>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="p-3 bg-light rounded-3 border h-100">
+                    <span class="text-muted text-xxs d-block mb-1.5 fw-bold text-uppercase">تاریخ صدور و سررسید</span>
+                    <strong class="text-dark font-mono text-xs d-block mb-1">{{ order.created_at|date:"Y/m/d" }}</strong>
+                    <span class="text-muted text-xxs"><i data-feather="calendar" style="width:11px; height:11px; vertical-align:middle;"></i> تقویم رسمی کشور</span>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-12">
+                <div class="p-3 bg-light rounded-3 border h-100">
+                    <span class="text-muted text-xxs d-block mb-1.5 fw-bold text-uppercase">ارزش کل فاکتور سفارش</span>
+                    <strong class="text-success font-mono text-sm d-block mb-1">{{ order.total_amount|floatformat:0|default:"0" }} <span class="text-xxs font-sans text-muted">ریال</span></strong>
+                    <span class="text-muted text-xxs">مجموع ناخالص اقلام ثبتی</span>
+                </div>
+            </div>
+        </div>
+
+        {% if order.description %}
+        <div class="mb-4 p-3 bg-light rounded-3 border">
+            <span class="text-muted text-xxs d-block mb-1 fw-bold text-uppercase">توضیحات و یادداشت‌های اداری</span>
+            <p class="text-dark text-xs mb-0 leading-relaxed">{{ order.description }}</p>
+        </div>
+        {% endif %}
+
+        <h6 class="fw-bold text-gray-900 mb-3 d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+            <i data-feather="list" style="width: 18px; height: 18px; color: var(--accent);"></i>
+            لیست اقلام سفارش داده شده (پیش‌فاکتور)
+        </h6>
+
+        <!-- جدول اقلام سفارش -->
+        <div class="table-responsive rounded-3 border">
+            <table class="table table-hover align-middle mb-0" style="border: none;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-xs text-secondary py-2.5" style="font-weight: 700;">شرح کالا / محصول</th>
+                        <th class="text-xs text-secondary text-center py-2.5" style="font-weight: 700; width: 100px;">تعداد (تخته/طاقه)</th>
+                        <th class="text-xs text-secondary text-center py-2.5" style="font-weight: 700; width: 100px;">وزن کل (kg)</th>
+                        <th class="text-xs text-secondary text-center py-2.5" style="font-weight: 700; width: 100px;">طول (m)</th>
+                        <th class="text-xs text-secondary text-center py-2.5" style="font-weight: 700; width: 100px;">عرض (cm)</th>
+                        <th class="pe-4 text-xs text-secondary text-center py-2.5" style="font-weight: 700; width: 150px;">قیمت کل (ریال)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td class="ps-4 text-xs fw-bold text-gray-800">{{ item.product.name }}</td>
+                        <td class="text-center font-mono text-xs">{{ item.quantity|floatformat:0 }}</td>
+                        <td class="text-center font-mono text-xs">{{ item.weight|floatformat:0|default:"—" }}</td>
+                        <td class="text-center font-mono text-xs">{{ item.length|floatformat:0|default:"—" }}</td>
+                        <td class="text-center font-mono text-xs">{{ item.width|floatformat:0|default:"—" }}</td>
+                        <td class="pe-4 text-center font-mono text-xs fw-bold text-success">{{ item.total_price|floatformat:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4 text-xs">
+                            هیچ قلم کالایی برای این سفارش تعریف نشده است.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "core/base.html" %}
+
+{% block title %}گروه‌های کالا و دسته‌بندی - حاما پارچه{% endblock %}
+{% block page_title %}تعریف و پیکربندی گروه‌های کالا{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">محصولات</a></li>
+  <li class="breadcrumb-item active" aria-current="page">گروه‌های کالا</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up" style="max-width: 800px; margin: auto;">
+
+    <!-- بنر راهنمای بالای صفحه -->
+    <div class="card-custom mb-4 p-4 position-relative overflow-hidden border-0 shadow-sm" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-right: 4px solid var(--accent) !important;">
+        <div class="position-absolute" style="left: -15px; top: -15px; opacity: 0.05; pointer-events: none;">
+            <i data-feather="layers" style="width: 140px; height: 140px; stroke-width: 1;"></i>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="fw-bold text-gray-900 mb-1.5" style="font-size: 1.15rem; letter-spacing: -0.02em;">مدیریت ساختار دسته‌بندی محصولات</h5>
+                <p class="text-muted text-xs mb-0 leading-relaxed">ایجاد رده‌بندی برای تفکیک کارهای بافندگی، پارچه‌های مبلی، مخمل، پارچه‌های خام پنبه‌ای و البسه جهت نظم‌دهی به موجودی فیزیکی و فاکتورها.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex flex-wrap justify-content-md-end gap-2">
+                <a href="{% url 'products:group_create' %}" class="btn btn-primary text-white d-inline-flex align-items-center gap-1.5 py-2 px-3.5 rounded-3 border-0 text-xs fw-bold font-sans" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);">
+                    <i data-feather="plus-circle" style="width: 15px; height: 15px;"></i> تعریف گروه کالا
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول نمایش گروه‌ها -->
+    <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="border: none;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نام و عنوان گروه کالایی</th>
+                        <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 220px;">عملیات تفکیک و پیگیری</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for group in groups %}
+                    <tr>
+                        <!-- نام گروه -->
+                        <td class="ps-4 fw-bold text-gray-900 text-xs">
+                            <i data-feather="layers" class="text-muted me-2" style="width: 14px; height: 14px; vertical-align: middle;"></i>
+                            {{ group.name }}
+                        </td>
+
+                        <!-- عملیات -->
+                        <td class="pe-4 text-center">
+                            <div class="d-flex justify-content-center gap-1.5">
+                                <a href="{% url 'products:group_edit' group.id %}" class="btn-edit">
+                                    <i data-feather="edit-2" style="width: 12px; height: 12px;"></i> ویرایش عنوان
+                                </a>
+                                <a href="{% url 'products:group_delete' group.id %}" class="btn-delete" onclick="return confirm('آیا مطمئن هستید؟ توجه داشته باشید در صورت حذف این گروه، تمامی کالاهای مرتبط با آن با مشکل دسته‌بندی مواجه خواهند شد.');">
+                                    <i data-feather="trash-2" style="width: 12px; height: 12px;"></i> حذف گروه
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center text-muted py-5">
+                            <div class="mb-2">
+                                <i data-feather="layers" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+                            </div>
+                            <h6 class="fw-bold m-0 text-xs text-dark">هیچ گروه کالایی تعریف نشده است</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

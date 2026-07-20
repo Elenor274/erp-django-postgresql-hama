@@ -1,0 +1,140 @@
+{% extends "core/base.html" %}
+
+{% block title %}انبارها - حاما پارچه{% endblock %}
+{% block page_title %}داشبورد مدیریت انبارها{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item active" aria-current="page">مدیریت انبارها</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up">
+
+    <!-- بنر راهنمای بالای صفحه -->
+    <div class="card-custom mb-4 p-4 position-relative overflow-hidden border-0 shadow-sm" style="background: linear-gradient(135deg, #ffffff, #f8fafc); border-right: 4px solid var(--accent) !important;">
+        <div class="position-absolute" style="left: -15px; top: -15px; opacity: 0.05; pointer-events: none;">
+            <i data-feather="database" style="width: 140px; height: 140px; stroke-width: 1;"></i>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <h5 class="fw-bold text-gray-900 mb-1.5" style="font-size: 1.15rem; letter-spacing: -0.02em;">سامانه یکپارچه مدیریت انبار و موجودی کالا (کاردکس)</h5>
+                <p class="text-muted text-xs mb-0 leading-relaxed">برای مشاهده موجودی کالاها، صدور سند ورودی (رسید) یا سند خروجی (حواله) و بررسی کلافی و دوره‌ای، لطفاً انبار هدف خود را انتخاب کنید.</p>
+            </div>
+            <div class="col-md-3 text-md-end mt-3 mt-md-0 d-flex flex-column align-items-md-end gap-2 justify-content-center">
+                <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-3 text-xs fw-bold" style="width: fit-content; border: 1px solid rgba(79, 70, 229, 0.12);">
+                    {{ warehouses|length }} انبار فعال سیستمی
+                </span>
+                <a href="{% url 'warehouse:warehouse_create' %}" class="btn btn-success text-white d-inline-flex align-items-center gap-1.5 py-2 px-3.5 rounded-3 border-0 text-xs fw-bold font-sans" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); width: fit-content;">
+                    <i data-feather="plus-circle" style="width: 15px; height: 15px;"></i> تعریف انبار جدید
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- گرید انبارها -->
+    <div class="row g-3">
+        {% for w in warehouses %}
+        <div class="col-md-4 col-sm-6">
+            <a href="{% url 'warehouse:warehouse_detail' w.id %}" class="warehouse-card-link text-decoration-none">
+                <div class="warehouse-card-inner card-custom h-100 p-4 border-0 shadow-sm bg-white position-relative overflow-hidden" style="border-right: 4px solid {% if w.warehouse_type == 'raw_material' %}#0284c7{% elif w.warehouse_type == 'finished_goods' %}#059669{% elif w.warehouse_type == 'semi_finished' %}#d97706{% else %}#4b5563{% endif %} !important;">
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="p-2.5 rounded-3 me-3 d-flex align-items-center justify-content-center
+                            {% if w.warehouse_type == 'raw_material' %}bg-primary-subtle text-primary
+                            {% elif w.warehouse_type == 'finished_goods' %}bg-success-subtle text-success
+                            {% elif w.warehouse_type == 'semi_finished' %}bg-warning-subtle text-warning
+                            {% else %}bg-secondary-subtle text-secondary{% endif %}" style="width: 44px; height: 44px;">
+                            <i data-feather="package" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <h6 class="m-0 fw-bold text-gray-900" style="font-size: 0.95rem;">{{ w.name }}</h6>
+                            <span class="text-muted text-xxs font-mono">کد: {{ w.code }}</span>
+                        </div>
+                    </div>
+
+                    <p class="text-muted text-xs mb-3 text-truncate-2" style="min-height: 36px; line-height: 1.6;">
+                        {{ w.description|default:"بدون توضیح یا آدرس استقرار ثبت‌شده در سیستم" }}
+                    </p>
+
+                    <hr class="my-3" style="border-color: #f1f5f9;">
+
+                    <div class="d-flex align-items-center justify-content-between text-xs mb-3">
+                        <span class="text-muted text-xxs">نوع انبار:</span>
+                        <span class="badge py-1 px-2.5 rounded-2 text-xxs fw-bold
+                            {% if w.warehouse_type == 'raw_material' %}bg-primary-subtle text-primary
+                            {% elif w.warehouse_type == 'finished_goods' %}bg-success-subtle text-success
+                            {% elif w.warehouse_type == 'semi_finished' %}bg-warning-subtle text-warning
+                            {% else %}bg-secondary-subtle text-secondary{% endif %}">
+                            {{ w.get_warehouse_type_display }}
+                        </span>
+                    </div>
+
+                    <!-- دکمه ورود تعبیه شده ته کارت -->
+                    <div class="text-end">
+                        <span class="btn-enter text-xxs fw-bold d-inline-flex align-items-center gap-1">
+                            ورود به کارتابل انبار <i data-feather="arrow-left" style="width: 12px; height: 12px;"></i>
+                        </span>
+                    </div>
+
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card-custom text-center py-5 bg-white border-0 shadow-sm">
+                <div class="text-muted mb-3">
+                    <i data-feather="package" style="width: 48px; height: 48px; opacity: 0.3;"></i>
+                </div>
+                <h5 class="fw-bold text-gray-900 mb-1.5" style="font-size: 1.05rem;">هیچ انباری یافت نشد</h5>
+                <p class="text-muted text-xs">اطلاعاتی مربوط به انبارها در پایگاه داده سیستم ثبت نشده است.</p>
+                <div class="mt-4">
+                    <a href="{% url 'warehouse:warehouse_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-1.5 py-2 px-4 rounded-3 border-0 text-xs fw-bold font-sans" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);">
+                        <i data-feather="plus-circle" style="width: 15px; height: 15px;"></i> اولین انبار را تعریف کنید
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<style>
+    .warehouse-card-inner {
+        position: relative;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 1px solid #e2e8f0 !important;
+    }
+    
+    .warehouse-card-link:hover .warehouse-card-inner {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 24px rgba(79, 70, 229, 0.06) !important;
+        border-color: rgba(79, 70, 229, 0.25) !important;
+    }
+    
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .btn-enter {
+        color: var(--muted);
+        transition: all 0.2s ease;
+    }
+    
+    .warehouse-card-link:hover .btn-enter {
+        color: var(--accent);
+        transform: translateX(-2px);
+    }
+    
+    .me-3 {
+        margin-left: 0 !important;
+        margin-right: 1rem !important;
+    }
+</style>
+{% endblock %}

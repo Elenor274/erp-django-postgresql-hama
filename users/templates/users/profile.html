@@ -1,0 +1,249 @@
+{% extends 'core/base.html' %}
+
+{% block title %}پروفایل کاربری - حاما پارچه{% endblock %}
+
+{% block page_title %}پروفایل من{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">میز کار</a></li>
+  <li class="breadcrumb-item active" aria-current="page">پروفایل من</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Profile Header Card -->
+        <div class="card-custom mb-4 p-4 border-0 shadow-sm bg-white">
+            <div class="d-flex flex-column flex-sm-row align-items-center gap-4 border-bottom pb-4 mb-4">
+                <div class="avatar-circle-lg" style="width: 80px; height: 80px; border-radius: 24px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 800; box-shadow: 0 8px 24px rgba(79, 70, 229, 0.25);">
+                    {{ request.user.username|slice:":1"|upper }}
+                </div>
+                <div class="text-center text-sm-start">
+                    <h4 class="font-bold text-slate mb-1" style="font-weight: 700;">{{ request.user.get_full_name|default:request.user.username }}</h4>
+                    <p class="text-muted text-xs mb-0">نقش سیستم: 
+                        {% if request.user.is_superuser %}
+                        <span class="badge bg-danger text-white">مدیر ارشد</span>
+                        {% elif profile.is_admin_user %}
+                        <span class="badge text-warning text-xs" style="background-color: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.15)">مدیر سیستم</span>
+                        {% else %}
+                        <span class="badge bg-light text-slate text-xs border">کاربر عادی</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Profile Tabs System -->
+            <div class="row">
+                <div class="col-md-3 border-start">
+                    <div class="nav flex-column nav-pills gap-2" id="profile-tab" role="tablist" aria-orientation="vertical">
+                        <button class="nav-link active text-end text-xs fw-bold py-2.5 px-3 rounded-3" id="tab-overview-btn" data-bs-toggle="pill" data-bs-target="#tab-overview" type="button" role="tab">
+                            <i data-feather="user" class="me-2" style="width: 15px; height: 15px;"></i> نمای کلی حساب
+                        </button>
+                        <button class="nav-link text-end text-xs fw-bold py-2.5 px-3 rounded-3" id="tab-edit-btn" data-bs-toggle="pill" data-bs-target="#tab-edit" type="button" role="tab">
+                            <i data-feather="edit" class="me-2" style="width: 15px; height: 15px;"></i> ویرایش اطلاعات
+                        </button>
+                        <button class="nav-link text-end text-xs fw-bold py-2.5 px-3 rounded-3" id="tab-password-btn" data-bs-toggle="pill" data-bs-target="#tab-password" type="button" role="tab">
+                            <i data-feather="lock" class="me-2" style="width: 15px; height: 15px;"></i> تغییر رمز عبور
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-9 pe-md-4">
+                    <div class="tab-content">
+                        
+                        <!-- Tab 1: Overview -->
+                        <div class="tab-pane fade show active" id="tab-overview" role="tabpanel">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <h6 class="font-bold text-slate mb-3" style="font-weight: 700;">اطلاعات شناسنامه‌ای</h6>
+                                    <table class="table table-borderless">
+                                        <tbody>
+                                            <tr>
+                                                <td class="text-muted text-xs py-2" style="width: 120px;">نام کاربری:</td>
+                                                <td class="font-bold text-xs text-slate py-2">{{ request.user.username }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted text-xs py-2">نام:</td>
+                                                <td class="font-bold text-xs text-slate py-2">{{ request.user.first_name|default:"—" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted text-xs py-2">نام خانوادگی:</td>
+                                                <td class="font-bold text-xs text-slate py-2">{{ request.user.last_name|default:"—" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted text-xs py-2">ایمیل:</td>
+                                                <td class="font-bold text-xs text-slate py-2">{{ request.user.email|default:"—" }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="col-md-6 border-start ps-md-4">
+                                    <h6 class="font-bold text-slate mb-3" style="font-weight: 700;"><i data-feather="shield" class="me-1 align-middle" style="width: 16px;"></i>دسترسی‌های فعال شما</h6>
+                                    
+                                    {% if request.user.is_superuser %}
+                                    <div class="alert alert-success d-flex align-items-center gap-2" role="alert" style="background-color: rgba(16, 185, 129, 0.04); border-color: rgba(16, 185, 129, 0.1); color: #10b981;">
+                                        <i data-feather="check-circle" class="text-success" style="width: 20px; height: 20px;"></i>
+                                        <div class="font-medium text-xs">شما به تمامی بخش‌ها و ماژول‌های سیستم دسترسی کامل دارید.</div>
+                                    </div>
+                                    {% else %}
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light-subtle">
+                                            <span class="text-xs font-medium text-slate">ماژول سفارشات</span>
+                                            {% if profile.access_orders %}
+                                            <span class="badge text-success text-xxs" style="background-color: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15)">فعال</span>
+                                            {% else %}
+                                            <span class="badge bg-light text-muted text-xxs">غیر فعال</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light-subtle">
+                                            <span class="text-xs font-medium text-slate">ماژول مشتریان</span>
+                                            {% if profile.access_customers %}
+                                            <span class="badge text-success text-xxs" style="background-color: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15)">فعال</span>
+                                            {% else %}
+                                            <span class="badge bg-light text-muted text-xxs">غیر فعال</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light-subtle">
+                                            <span class="text-xs font-medium text-slate">ماژول محصولات</span>
+                                            {% if profile.access_products %}
+                                            <span class="badge text-success text-xxs" style="background-color: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15)">فعال</span>
+                                            {% else %}
+                                            <span class="badge bg-light text-muted text-xxs">غیر فعال</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light-subtle">
+                                            <span class="text-xs font-medium text-slate">ماژول انبارداری</span>
+                                            {% if profile.access_warehouse %}
+                                            <span class="badge text-success text-xxs" style="background-color: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15)">فعال</span>
+                                            {% else %}
+                                            <span class="badge bg-light text-muted text-xxs">غیر فعال</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light-subtle">
+                                            <span class="text-xs font-medium text-slate">ماژول تولید و برنامه‌ریزی</span>
+                                            {% if profile.access_production %}
+                                            <span class="badge text-success text-xxs" style="background-color: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15)">فعال</span>
+                                            {% else %}
+                                            <span class="badge bg-light text-muted text-xxs">غیر فعال</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light-subtle">
+                                            <span class="text-xs font-medium text-slate">ماژول گزارشات و تحلیل</span>
+                                            {% if profile.access_reports %}
+                                            <span class="badge text-success text-xxs" style="background-color: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15)">فعال</span>
+                                            {% else %}
+                                            <span class="badge bg-light text-muted text-xxs">غیر فعال</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Edit Info -->
+                        <div class="tab-pane fade" id="tab-edit" role="tabpanel">
+                            <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem;">بروزرسانی مشخصات فردی</h6>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_info">
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ info_form.first_name.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ info_form.first_name.label }}</label>
+                                        {{ info_form.first_name }}
+                                        {% if info_form.first_name.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ info_form.first_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ info_form.last_name.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ info_form.last_name.label }}</label>
+                                        {{ info_form.last_name }}
+                                        {% if info_form.last_name.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ info_form.last_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ info_form.username.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ info_form.username.label }}</label>
+                                        {{ info_form.username }}
+                                        {% if info_form.username.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ info_form.username.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ info_form.email.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ info_form.email.label }}</label>
+                                        {{ info_form.email }}
+                                        {% if info_form.email.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ info_form.email.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 border-top pt-3 mt-4">
+                                    <button type="submit" class="btn btn-primary text-white text-xs fw-bold px-4 py-2 rounded-3 border-0" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);">
+                                        <i data-feather="check" class="me-1" style="width: 14px; height: 14px;"></i> ذخیره تغییرات مشخصات
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Tab 3: Change Password -->
+                        <div class="tab-pane fade" id="tab-password" role="tabpanel">
+                            <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem;">تغییر گذرواژه ورود به سامانه</h6>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="change_password">
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ password_form.new_password.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ password_form.new_password.label }}</label>
+                                        {{ password_form.new_password }}
+                                        {% if password_form.new_password.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ password_form.new_password.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ password_form.confirm_password.id_for_label }}" class="form-label text-xs fw-bold text-muted">{{ password_form.confirm_password.label }}</label>
+                                        {{ password_form.confirm_password }}
+                                        {% if password_form.confirm_password.errors %}
+                                            <div class="text-danger text-xxs mt-1">{{ password_form.confirm_password.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 border-top pt-3 mt-4">
+                                    <button type="submit" class="btn btn-primary text-white text-xs fw-bold px-4 py-2 rounded-3 border-0" style="background: var(--accent); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);">
+                                        <i data-feather="key" class="me-1" style="width: 14px; height: 14px;"></i> بروزرسانی رمز عبور
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nav-pills .nav-link {
+        color: var(--muted);
+        border: 1px solid transparent;
+        text-align: right;
+        transition: all 0.2s;
+    }
+    .nav-pills .nav-link:hover {
+        color: var(--text);
+        background: rgba(79, 70, 229, 0.04);
+    }
+    .nav-pills .nav-link.active {
+        color: var(--accent) !important;
+        background: rgba(79, 70, 229, 0.08) !important;
+        border: 1px solid rgba(79, 70, 229, 0.15) !important;
+    }
+</style>
+{% endblock %}

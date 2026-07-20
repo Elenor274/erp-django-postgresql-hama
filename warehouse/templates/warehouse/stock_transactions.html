@@ -1,0 +1,209 @@
+{% extends "core/base.html" %}
+
+{% block title %}کاردکس تراکنش‌ها - انبار {{ warehouse.name }} - حاما پارچه{% endblock %}
+{% block page_title %}کاردکس تراکنش‌های انبار {{ warehouse.name }}{% endblock %}
+
+{% block breadcrumbs %}
+<ol class="breadcrumb">
+  <li class="breadcrumb-item"><a href="{% url 'core:dashboard' %}">داشبورد</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'warehouse:warehouse_list' %}">مدیریت انبارها</a></li>
+  <li class="breadcrumb-item"><a href="{% url 'warehouse:warehouse_detail' warehouse.id %}">انبار {{ warehouse.name }}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">کاردکس تراکنش‌ها</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in-up">
+
+    <!-- بخش بالایی شامل دکمه‌های بازگشت و فیلترها -->
+    <div class="card-custom mb-4 p-3 border-0 shadow-sm bg-white">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-4 col-md-12 d-flex align-items-center gap-3">
+                <a href="{% url 'warehouse:warehouse_detail' warehouse.id %}" class="btn btn-outline-soft d-inline-flex align-items-center gap-1.5 py-2 px-3 text-xs fw-bold">
+                    <i data-feather="arrow-right" style="width: 15px; height: 15px;"></i> بازگشت به داشبورد انبار
+                </a>
+                <div class="h-100 border-start d-none d-lg-block" style="width: 1px; height: 24px; background: #e2e8f0;"></div>
+                <h5 class="fw-bold m-0 text-gray-900 d-none d-lg-block" style="font-size: 1rem;">کاردکس کامل انبار</h5>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 d-flex justify-content-lg-center">
+                <div class="btn-group p-1 bg-light rounded-3" role="group" style="border: 1px solid #e2e8f0;">
+                    <button type="button" class="btn btn-sm btn-light active px-3 filter-btn" data-filter="all" style="font-size: 0.75rem; font-weight: 700; border-radius: 6px;">همه تراکنش‌ها</button>
+                    <button type="button" class="btn btn-sm btn-light px-3 text-success filter-btn" data-filter="in" style="font-size: 0.75rem; font-weight: 700; border-radius: 6px;">ورودی‌ها</button>
+                    <button type="button" class="btn btn-sm btn-light px-3 text-danger filter-btn" data-filter="out" style="font-size: 0.75rem; font-weight: 700; border-radius: 6px;">خروجی‌ها</button>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="position-relative">
+                    <i data-feather="search" class="text-muted position-absolute" style="right: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px;"></i>
+                    <input type="text" id="ledgerSearchInput" class="form-control" placeholder="جستجو بر اساس نام کالا، تأمین‌کننده، مرجع و..." style="padding-right: 40px; font-size: 0.85rem; border-radius: 8px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول تراکنش‌ها (کاردکس) -->
+    <div class="card-custom border-0 shadow-sm bg-white p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="transactionsTable" style="border: none;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 110px;">نوع سند</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">نام کالا / محصول</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 120px;">مقدار واقعی</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 90px;">واحد کالا</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">دسته‌بندی علت</th>
+                        <th class="text-xs text-secondary py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">تأمین‌کننده / مبدأ / مقصد</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700;">شماره مرجع</th>
+                        <th class="text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 100px;">کاربر ثبت</th>
+                        <th class="pe-4 text-xs text-secondary text-center py-3" style="border-bottom: 2px solid #e2e8f0; font-weight: 700; width: 140px;">تاریخ و ساعت ثبت</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for t in transactions %}
+                    <tr class="transaction-row" data-type="{% if t.type == 'IN' %}in{% else %}out{% endif %}">
+                        <!-- نوع سند -->
+                        <td class="ps-4 text-xs">
+                            {% if t.type == "IN" %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1 py-1 px-2.5 rounded-2" style="font-size: 0.72rem;">
+                                    <i data-feather="arrow-down-left" style="width: 10px; height: 10px; stroke-width: 3;"></i> ورودی
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle d-inline-flex align-items-center gap-1 py-1 px-2.5 rounded-2" style="font-size: 0.72rem;">
+                                    <i data-feather="arrow-up-right" style="width: 10px; height: 10px; stroke-width: 3;"></i> خروجی
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- کالا -->
+                        <td class="fw-bold text-gray-800 text-xs search-cell">{{ t.product.name }}</td>
+
+                        <!-- مقدار -->
+                        <td class="text-center font-mono fw-bold text-xs">
+                            <span class="{% if t.type == 'IN' %}text-success{% else %}text-danger{% endif %}">
+                                {% if t.type == "IN" %}+{% else %}-{% endif %}{{ t.quantity|floatformat:0 }}
+                            </span>
+                        </td>
+
+                        <!-- واحد -->
+                        <td class="text-center text-xs text-muted">{{ t.unit }}</td>
+
+                        <!-- دسته‌بندی علت -->
+                        <td class="text-xs search-cell">
+                            <span class="badge bg-light text-dark py-1 px-2.5 rounded-2 border">
+                                {{ t.get_transaction_category_display }}
+                            </span>
+                        </td>
+
+                        <!-- تامین کننده -->
+                        <td class="text-xs text-muted search-cell">{{ t.supplier_name|default:"—" }}</td>
+
+                        <!-- شماره مرجع -->
+                        <td class="text-center font-mono text-xs search-cell">
+                            {% if t.reference %}
+                                <span class="text-dark fw-medium bg-light px-2 py-1 rounded-2 border" style="font-size: 0.75rem;">{{ t.reference }}</span>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- کاربر ثبت کننده -->
+                        <td class="text-center text-xs text-muted search-cell">{{ t.user.username|default:"—" }}</td>
+
+                        <!-- تاریخ ثبت -->
+                        <td class="pe-4 text-center font-mono text-xs text-muted" style="direction: ltr;">
+                            {{ t.created_at|date:"Y/m/d H:i" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-5">
+                            <div class="mb-2">
+                                <i data-feather="activity" style="width: 36px; height: 36px; opacity: 0.3;"></i>
+                            </div>
+                            <h6 class="fw-bold m-0 text-xs text-dark">هیچ تراکنشی ثبت نشده است</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr id="ledgerNoResultsRow" style="display: none;">
+                        <td colspan="9" class="text-center text-muted py-4 text-xs">
+                            تراکنشی با فیلترهای مشخص شده منطبق نیست.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ledgerSearchInput = document.getElementById("ledgerSearchInput");
+        const filterButtons = document.querySelectorAll(".filter-btn");
+        const txRows = document.querySelectorAll(".transaction-row");
+        const ledgerNoResultsRow = document.getElementById("ledgerNoResultsRow");
+
+        let activeTypeFilter = "all";
+        let searchQuery = "";
+
+        function applyTxFilters() {
+            let visibleCount = 0;
+
+            txRows.forEach(row => {
+                const rowType = row.getAttribute("data-type");
+                
+                let textContent = "";
+                row.querySelectorAll(".search-cell").forEach(cell => {
+                    textContent += " " + cell.textContent.toLowerCase();
+                });
+
+                const matchesType = (activeTypeFilter === "all" || rowType === activeTypeFilter);
+                const matchesSearch = textContent.includes(searchQuery);
+
+                if (matchesType && matchesSearch) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            if (visibleCount === 0 && txRows.length > 0) {
+                ledgerNoResultsRow.style.display = "";
+            } else {
+                ledgerNoResultsRow.style.display = "none";
+            }
+        }
+
+        if (ledgerSearchInput) {
+            ledgerSearchInput.addEventListener("input", function () {
+                searchQuery = ledgerSearchInput.value.toLowerCase().trim();
+                applyTxFilters();
+            });
+        }
+
+        filterButtons.forEach(btn => {
+            btn.addEventListener("click", function () {
+                filterButtons.forEach(b => b.classList.remove("active", "btn-primary", "btn-success", "btn-danger", "btn-dark"));
+                filterButtons.forEach(b => b.classList.add("btn-light"));
+                
+                this.classList.remove("btn-light");
+                this.classList.add("active");
+                if (this.getAttribute("data-filter") === "in") {
+                    this.classList.add("btn-success");
+                } else if (this.getAttribute("data-filter") === "out") {
+                    this.classList.add("btn-danger");
+                } else {
+                    this.classList.add("btn-dark");
+                }
+
+                activeTypeFilter = this.getAttribute("data-filter");
+                applyTxFilters();
+            });
+        });
+    });
+</script>
+{% endblock %}

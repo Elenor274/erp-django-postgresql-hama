@@ -1,0 +1,657 @@
+{% load static %}
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}حاما پارچه{% endblock %}</title>
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+
+  <!-- Third-party -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  {% block head_extra %}{% endblock %}
+  {% block head %}{% endblock %}
+
+  <style>
+    :root{
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --muted: #64748b;
+      --text: #0f172a;
+      --accent: #4f46e5; /* Sophisticated Modern Indigo */
+      --accent-2: #3b82f6; /* Enterprise Cobalt Blue */
+      --accent-hover: #4338ca;
+      --accent-emerald: #10b981;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:"Vazirmatn",sans-serif;
+      background:linear-gradient(180deg,var(--bg),#f1f5f9);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .container-fluid-custom{max-width:1200px;margin-inline:auto;padding-inline:1rem}
+
+    .topbar{
+      height:70px;display:flex;align-items:center;justify-content:space-between;
+      padding:0 24px;background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:1100;
+    }
+
+    .sidebar{
+      position:fixed;right:0;top:0;width:260px;height:100vh;padding:28px 18px;
+      background:#0f172a; /* Sophisticated deep slate-obsidian blue */
+      box-shadow:-10px 0 40px rgba(15, 23, 42, 0.15);
+      display:flex;flex-direction:column;gap:20px;z-index:1200;transition:transform .22s cubic-bezier(0.16, 1, 0.3, 1);
+      border-left:1px solid rgba(255,255,255,0.06);
+      overflow-y:auto;
+    }
+    .sidebar.hidden{transform:translateX(110%)}
+    .sidebar-logo{display:flex;gap:12px;align-items:center;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:20px;margin-bottom:4px}
+    .sidebar-logo .brand{font-weight:800;color:#ffffff;font-size:1.2rem;letter-spacing:-0.015em;line-height:1.2}
+    .sidebar .avatar{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.1rem;box-shadow:0 8px 20px rgba(79,70,229,0.35)}
+
+    /* Sidebar Tabs Categorization Styles */
+    .sidebar-tabs {
+      display: flex;
+      background: rgba(255,255,255,0.03);
+      padding: 4px;
+      border-radius: 12px;
+      margin: 0 2px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .sidebar-tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 10px 2px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .sidebar-tab-btn i {
+      width: 17px;
+      height: 17px;
+      stroke-width: 1.8px;
+      opacity: 0.8;
+      transition: all 0.25s;
+    }
+    .sidebar-tab-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .sidebar-tab-btn.active {
+      background: #ffffff;
+      color: var(--accent);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .sidebar-tab-btn.active i {
+      opacity: 1;
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .sidebar-tab-content {
+      display: none;
+      animation: tabFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .sidebar-tab-content.active {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    @keyframes tabFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sidebar-nav{display:flex;flex-direction:column;gap:5px;overflow-y:auto;flex:1;padding-bottom:24px}
+    /* Scrollbar for sidebar navigation */
+    .sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    .nav-section-title{color:rgba(255,255,255,0.35);font-size:0.68rem;font-weight:700;letter-spacing:0.06em;padding:12px 12px 6px 12px;margin-top:8px;text-transform:uppercase}
+    .nav-item-custom{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;color:rgba(255,255,255,0.65);text-decoration:none;font-weight:500;font-size:0.85rem;transition:all .2s ease;border: 1px solid transparent;}
+    .nav-item-custom i{width:18px;height:18px;opacity:0.8;transition:all .2s ease}
+    .nav-item-custom:hover{background:rgba(255,255,255,0.04);color:#ffffff;padding-right:18px;border-color:transparent}
+    .nav-item-custom:hover i{opacity:1;color:var(--accent-2);transform: scale(1.05)}
+    .nav-item-custom.active{background:linear-gradient(135deg, rgba(79,70,229,0.15), rgba(59,130,246,0.08));color:#ffffff;font-weight:700;box-shadow:none;border-right:3px solid var(--accent);border-radius:0 10px 10px 0;padding-right:16px;}
+    .nav-item-custom.active i{opacity:1;color:var(--accent-2)}
+
+    /* Back Button Style */
+    .btn-back-custom {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(79, 70, 229, 0.08);
+      border: 1px solid rgba(79, 70, 229, 0.15);
+      border-radius: 10px;
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      margin-left: 8px;
+    }
+    .btn-back-custom:hover {
+      background: var(--accent);
+      color: #ffffff !important;
+      transform: translateX(3px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    }
+    .btn-back-custom i {
+      width: 15px;
+      height: 15px;
+      transition: transform 0.2s;
+    }
+    .btn-back-custom:hover i {
+      transform: translateX(1px);
+    }
+
+    .main-content{margin-right:260px;min-height:100vh;display:flex;flex-direction:column;transition:margin-right .22s ease}
+    .main-content.full{margin-right:0 !important}
+    .page-content{padding:32px 24px;flex:1}
+
+    .card-custom{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);transition:all .2s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e2e8f0 !important;}
+    .card-custom:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(79,70,229,0.05);border-color:rgba(79,70,229,0.15)}
+    .btn-primary-custom{background:linear-gradient(135deg,var(--accent),var(--accent-hover, #4338ca));color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:600;transition:all .2s ease;box-shadow:0 4px 12px rgba(79, 70, 229, 0.15); display: inline-flex; align-items: center; gap: 8px; text-decoration: none;}
+    .btn-primary-custom:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(79, 70, 229, 0.25);filter:brightness(1.05); color: #fff;}
+    .btn-outline-soft{border:1px solid var(--border);color:var(--text);background:transparent;border-radius:8px;padding:10px 14px;font-weight:500;transition:all .15s ease; text-decoration: none;}
+    .btn-outline-soft:hover{background:var(--border);color:var(--text)}
+
+    /* Modern action buttons used globally */
+    .btn-edit {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: rgba(79, 70, 229, 0.08) !important;
+      color: var(--accent) !important;
+      border: 1px solid rgba(79, 70, 229, 0.12) !important;
+      border-radius: 8px !important;
+      padding: 6px 12px !important;
+      font-size: 0.78rem !important;
+      font-weight: 700 !important;
+      text-decoration: none !important;
+      transition: all 0.2s;
+    }
+    .btn-edit:hover {
+      background-color: var(--accent) !important;
+      color: #ffffff !important;
+      transform: translateY(-1px);
+    }
+    .btn-delete {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: rgba(239, 68, 68, 0.08) !important;
+      color: #ef4444 !important;
+      border: 1px solid rgba(239, 68, 68, 0.12) !important;
+      border-radius: 8px !important;
+      padding: 6px 12px !important;
+      font-size: 0.78rem !important;
+      font-weight: 700 !important;
+      text-decoration: none !important;
+      transition: all 0.2s;
+    }
+    .btn-delete:hover {
+      background-color: #ef4444 !important;
+      color: #ffffff !important;
+      transform: translateY(-1px);
+    }
+
+    /* Custom Form & Table Beautification globally */
+    .form-control, .form-select, .form-control-custom {
+      border: 1px solid var(--border);
+      background-color: #ffffff;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      padding: 10px 14px;
+      color: var(--text);
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    .form-control:focus, .form-select:focus, .form-control-custom:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+      outline: none;
+    }
+    .table {
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .table th {
+      background-color: #f8fafc;
+      font-weight: 700;
+      color: #475569;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      padding: 14px 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.88rem;
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(79, 70, 229, 0.02) !important;
+      transition: background-color 0.15s ease;
+    }
+    .badge {
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+
+    .kpi{display:flex;align-items:center;gap:12px}
+    .kpi .kpi-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;background:linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(79, 70, 229, 0.04));border:1px solid rgba(79, 70, 229, 0.06);color:var(--accent)}
+
+    .fade-in-up{animation:fadeUp .36s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+    @media (max-width:991px){
+      .sidebar{transform:translateX(110%)}
+      .sidebar:not(.hidden){transform:translateX(0)}
+      .main-content{margin-right:0 !important}
+      .topbar .search-input{display:none}
+    }
+  </style>
+</head>
+
+<body>
+  {# امن‌سازی URLها #}
+  {% url 'core:dashboard' as url_dashboard %}
+  {% url 'orders:order_list' as url_orders %}
+  {% url 'orders:order_create' as url_order_create %}
+  {% url 'customers:customer_list' as url_customers %}
+  {% url 'customers:customer_create' as url_customer_create %}
+  {% url 'products:product_list' as url_products %}
+  {% url 'warehouse:warehouse_list' as url_warehouse %}
+  {% url 'core:settings' as url_settings %}
+  {% url 'users:profile' as url_profile %}
+  {% url 'core:logout' as url_logout %}
+  {% url 'core:login' as url_login %}
+
+  <!-- Sidebar -->
+  <aside id="appSidebar" class="sidebar" aria-label="منوی اصلی">
+    <div class="sidebar-logo">
+      <div class="avatar" aria-hidden="true">ح</div>
+      <div>
+        <div class="brand">حاما <span style="color:var(--accent-2)">پارچه</span></div>
+        <div style="font-size:0.72rem;color:var(--muted)">سامانه مدیریت</div>
+      </div>
+    </div>
+
+    <!-- Sidebar Tabs -->
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab-btn active" data-tab="tab-desk" aria-label="میز کار">
+        <i data-feather="home"></i>
+        <span>میز کار</span>
+      </button>
+      {% if user.is_superuser or user.userprofile.access_orders or user.userprofile.access_customers %}
+      <button class="sidebar-tab-btn" data-tab="tab-commerce" aria-label="بازرگانی">
+        <i data-feather="briefcase"></i>
+        <span>بازرگانی</span>
+      </button>
+      {% endif %}
+      {% if user.is_superuser or user.userprofile.access_products or user.userprofile.access_warehouse or user.userprofile.access_production %}
+      <button class="sidebar-tab-btn" data-tab="tab-production" aria-label="تولید">
+        <i data-feather="cpu"></i>
+        <span>تولید</span>
+      </button>
+      {% endif %}
+      {% if user.is_superuser or user.userprofile.access_reports %}
+      <button class="sidebar-tab-btn" data-tab="tab-reports" aria-label="گزارشات">
+        <i data-feather="bar-chart-2"></i>
+        <span>گزارشات</span>
+      </button>
+      {% endif %}
+    </div>
+
+    <nav class="sidebar-nav" role="navigation" aria-label="ناوبری اصلی">
+      <!-- Desk (Tab 1) -->
+      <div class="sidebar-tab-content" id="tab-desk">
+        <div class="nav-section-title">داشبورد و عمومی</div>
+        <a href="{{ url_dashboard|default:'#' }}" class="nav-item-custom {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-label="داشبورد">
+          <i data-feather="grid"></i><span>داشبورد</span>
+        </a>
+        
+        {% if user.is_superuser or user.userprofile.is_admin_user %}
+        <a href="{% url 'users:user_list' %}" class="nav-item-custom {% if 'users' in request.path and 'profile' not in request.path %}active{% endif %}" aria-label="مدیریت کاربران">
+          <i data-feather="users"></i><span>مدیریت کاربران</span>
+        </a>
+        {% endif %}
+
+        <div class="nav-section-title">پیکربندی و حساب</div>
+        <a href="{{ url_settings|default:'#' }}" class="nav-item-custom {% if 'settings' in request.path %}active{% endif %}" aria-label="تنظیمات">
+          <i data-feather="settings"></i><span>تنظیمات</span>
+        </a>
+        <a href="{{ url_profile|default:'#' }}" class="nav-item-custom {% if 'users/profile' in request.path %}active{% endif %}" aria-label="پروفایل">
+          <i data-feather="user"></i><span>پروفایل</span>
+        </a>
+        <a href="{{ url_logout|default:'#' }}" class="nav-item-custom" aria-label="خروج">
+          <i data-feather="log-out"></i><span>خروج</span>
+        </a>
+      </div>
+
+      <!-- Commercial (Tab 2) -->
+      <div class="sidebar-tab-content" id="tab-commerce">
+        <div class="nav-section-title">مدیریت بازرگانی</div>
+        
+        {% if user.is_superuser or user.userprofile.access_orders %}
+        <a href="{{ url_orders|default:'#' }}" class="nav-item-custom {% if 'orders' in request.path %}active{% endif %}" aria-label="سفارشات فروش">
+          <i data-feather="shopping-bag"></i><span>سفارشات فروش</span>
+        </a>
+        {% endif %}
+
+        {% if user.is_superuser or user.userprofile.access_customers %}
+        <a href="{{ url_customers|default:'#' }}" class="nav-item-custom {% if 'customers' in request.path %}active{% endif %}" aria-label="بانک اطلاعات مشتریان">
+          <i data-feather="users"></i><span>بانک مشتریان</span>
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Production (Tab 3) -->
+      <div class="sidebar-tab-content" id="tab-production">
+        {% if user.is_superuser or user.userprofile.access_products or user.userprofile.access_warehouse %}
+        <div class="nav-section-title">محصولات و انبار</div>
+        {% if user.is_superuser or user.userprofile.access_products %}
+        <a href="{{ url_products|default:'#' }}" class="nav-item-custom {% if 'products' in request.path %}active{% endif %}" aria-label="محصولات">
+          <i data-feather="package"></i><span>محصولات</span>
+        </a>
+        {% endif %}
+        {% if user.is_superuser or user.userprofile.access_warehouse %}
+        <a href="{{ url_warehouse|default:'#' }}" class="nav-item-custom {% if 'warehouse' in request.path %}active{% endif %}" aria-label="انبارها">
+          <i data-feather="archive"></i><span>انبارها</span>
+        </a>
+        {% endif %}
+        {% endif %}
+
+        {% if user.is_superuser or user.userprofile.access_production %}
+        {% url 'production:planning_list' as url_planning %}
+        {% url 'production:machine_list' as url_machines %}
+        {% url 'production:operator_list' as url_operators %}
+        {% url 'production:stage_list' as url_stages %}
+
+        <div class="nav-section-title">برنامه‌ریزی و تولید</div>
+        <a href="{{ url_planning|default:'#' }}" class="nav-item-custom {% if 'production/planning' in request.path %}active{% endif %}" aria-label="برنامه‌ریزی تولید">
+          <i data-feather="calendar"></i><span>برنامه‌ریزی تولید</span>
+        </a>
+        <a href="{{ url_machines|default:'#' }}" class="nav-item-custom {% if 'production/machines' in request.path %}active{% endif %}" aria-label="ماشین‌آلات">
+          <i data-feather="cpu"></i><span>ماشین‌آلات</span>
+        </a>
+        <a href="{{ url_operators|default:'#' }}" class="nav-item-custom {% if 'production/operators' in request.path %}active{% endif %}" aria-label="اپراتورها">
+          <i data-feather="user-check"></i><span>اپراتورها</span>
+        </a>
+        <a href="{{ url_stages|default:'#' }}" class="nav-item-custom {% if 'production/stages' in request.path %}active{% endif %}" aria-label="مراحل کاری">
+          <i data-feather="git-commit"></i><span>مراحل کاری</span>
+        </a>
+
+        {% url 'production:maintenance_list' as url_maintenance %}
+        <div class="nav-section-title">نگهداری و تعمیرات (نت)</div>
+        <a href="{{ url_maintenance|default:'#' }}" class="nav-item-custom {% if 'production/maintenance' in request.path %}active{% endif %}" aria-label="مدیریت تعمیرات">
+          <i data-feather="tool"></i><span>درخواست‌های تعمیر و نت</span>
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Reports (Tab 4) -->
+      <div class="sidebar-tab-content" id="tab-reports">
+        {% if user.is_superuser or user.userprofile.access_reports %}
+        <div class="nav-section-title">گزارشات و رهگیری هوشمند</div>
+        <a href="/reports/?tab=tracking" class="nav-item-custom {% if 'reports' in request.path and 'tracking' in request.GET.tab or 'reports' in request.path and not request.GET.tab %}active{% endif %}" aria-label="رهگیری هوشمند">
+          <i data-feather="search"></i><span>رهگیری هوشمند سفارش</span>
+        </a>
+        <a href="/reports/?tab=production" class="nav-item-custom {% if 'reports' in request.path and 'production' in request.GET.tab %}active{% endif %}" aria-label="گزارش تولید">
+          <i data-feather="cpu"></i><span>تولید و توقفات خطوط</span>
+        </a>
+        <a href="/reports/?tab=warehouse" class="nav-item-custom {% if 'reports' in request.path and 'warehouse' in request.GET.tab %}active{% endif %}" aria-label="گزارش انبار">
+          <i data-feather="archive"></i><span>موجودی و کسری انبار</span>
+        </a>
+        <a href="/reports/?tab=sales" class="nav-item-custom {% if 'reports' in request.path and 'sales' in request.GET.tab %}active{% endif %}" aria-label="تحلیل سفارشات">
+          <i data-feather="trending-up"></i><span>تحلیل فروش و مشتری</span>
+        </a>
+        {% endif %}
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <div id="mainContent" class="main-content">
+    <header class="topbar">
+      <div class="d-flex align-items-center gap-2">
+        <button id="sidebarToggle" class="icon-btn" aria-label="باز و بسته کردن منو"><i data-feather="menu"></i></button>
+        
+        {% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'login' %}
+          <a href="javascript:history.length > 1 ? history.back() : window.location.href='{% url 'core:dashboard' %}'" class="btn-back-custom" aria-label="بازگشت">
+            <i data-feather="arrow-right"></i>
+            <span>بازگشت</span>
+          </a>
+        {% endif %}
+
+        <div class="page-title" aria-live="polite">{% block page_title %}داشبورد{% endblock %}</div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <form class="d-none d-lg-block" role="search" action="" method="get" aria-label="جستجو">
+          <input type="search" name="q" class="form-control form-control-sm search-input" placeholder="جستجو..." aria-label="جستجو">
+        </form>
+
+        <div class="dropdown">
+          <button class="btn btn-outline-none d-flex align-items-center gap-2" id="userMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="avatar" style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700">
+              {% if user.is_authenticated %}{{ user.get_full_name|default:user.username|slice:":1" }}{% else %}ح{% endif %}
+            </span>
+            <span class="d-none d-md-inline" style="color:var(--text)">{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}کاربر{% endif %}</span>
+            <i data-feather="chevron-down" style="color:var(--muted)"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuBtn">
+            <li><a class="dropdown-item" href="{{ url_profile|default:'#' }}"><i data-feather="user" class="me-2"></i>پروفایل</a></li>
+            <li><a class="dropdown-item" href="{{ url_settings|default:'#' }}"><i data-feather="settings" class="me-2"></i>تنظیمات</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="{{ url_logout|default:'#' }}"><i data-feather="log-out" class="me-2"></i>خروج</a></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-content container-fluid-custom" role="main">
+      {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="بستن"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <nav aria-label="breadcrumb" class="mb-3">{% block breadcrumbs %}{% endblock %}</nav>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Core scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      if(window.feather){ feather.replace({ 'stroke-width': 1.4 }); }
+      const sidebar = document.getElementById('appSidebar');
+      const main = document.getElementById('mainContent');
+      const toggle = document.getElementById('sidebarToggle');
+      const storageKey = 'erp_sidebar_blue_v1';
+      function setOpen(open){
+        if(open){ sidebar.classList.remove('hidden'); main.classList.remove('full'); try{ localStorage.setItem(storageKey,'1'); }catch(e){} }
+        else { sidebar.classList.add('hidden'); main.classList.add('full'); try{ localStorage.setItem(storageKey,'0'); }catch(e){} }
+      }
+      const saved = (function(){ try{ return localStorage.getItem(storageKey); }catch(e){ return null; } })();
+      if(saved === null){ setOpen(window.innerWidth >= 992); } else { setOpen(saved === '1'); }
+      if(toggle){
+        toggle.addEventListener('click', function(e){ e.stopPropagation(); setOpen(!sidebar.classList.contains('hidden')); });
+      }
+      document.addEventListener('click', function(e){
+        if(window.innerWidth < 992){
+          if(!sidebar.contains(e.target) && !toggle.contains(e.target)){ setOpen(false); }
+        }
+      });
+      window.addEventListener('resize', function(){ if(window.innerWidth >= 992){ setOpen(true); } });
+
+      // Sidebar tabbed categorization interactive logic
+      const tabBtns = document.querySelectorAll('.sidebar-tab-btn');
+      const tabContents = document.querySelectorAll('.sidebar-tab-content');
+      const activeTabKey = 'erp_sidebar_active_tab';
+
+      function switchTab(tabId) {
+        tabBtns.forEach(btn => {
+          if (btn.getAttribute('data-tab') === tabId) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+        tabContents.forEach(content => {
+          if (content.id === tabId) {
+            content.classList.add('active');
+          } else {
+            content.classList.remove('active');
+          }
+        });
+        try { localStorage.setItem(activeTabKey, tabId); } catch(e) {}
+      }
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const tabId = btn.getAttribute('data-tab');
+          switchTab(tabId);
+        });
+      });
+
+      // Detect active sub-item on load or check localStorage
+      let hasActiveItem = false;
+      const activeItem = document.querySelector('.sidebar-nav .nav-item-custom.active');
+      if (activeItem) {
+        const parentContent = activeItem.closest('.sidebar-tab-content');
+        if (parentContent) {
+          switchTab(parentContent.id);
+          hasActiveItem = true;
+        }
+      }
+
+      if (!hasActiveItem) {
+        // If no explicit active item, fallback to matching pathname or localStorage or default 'tab-desk'
+        const currentPath = window.location.pathname;
+        const currentSearch = window.location.search;
+        let matchedTab = null;
+        
+        document.querySelectorAll('.sidebar-nav .nav-item-custom').forEach(item => {
+          const href = item.getAttribute('href');
+          if (href && href !== '#' && href !== '/') {
+            const cleanHref = href.split('?')[0];
+            const cleanPath = currentPath.split('?')[0];
+            
+            // Match if paths are same, and if there is a query string, match specific tab
+            let isMatch = false;
+            if (cleanPath === cleanHref) {
+              if (href.includes('tab=')) {
+                const tabParam = href.split('tab=')[1].split('&')[0];
+                if (currentSearch.includes('tab=' + tabParam)) {
+                  isMatch = true;
+                }
+              } else if (!currentSearch.includes('tab=')) {
+                isMatch = true;
+              } else if (currentSearch.includes('tab=tracking') && href.includes('tab=tracking')) {
+                isMatch = true; // fallback match for default tab
+              }
+            } else if (cleanHref !== '/' && cleanPath.includes(cleanHref)) {
+              isMatch = true;
+            }
+            
+            if (isMatch) {
+              item.classList.add('active');
+              const parentContent = item.closest('.sidebar-tab-content');
+              if (parentContent) {
+                matchedTab = parentContent.id;
+              }
+            }
+          }
+        });
+
+        if (matchedTab) {
+          switchTab(matchedTab);
+        } else {
+          // Check saved tab in localStorage
+          const savedTab = (function(){ try { return localStorage.getItem(activeTabKey); } catch(e) { return null; } })();
+          if (savedTab && document.getElementById(savedTab)) {
+            switchTab(savedTab);
+          } else {
+            switchTab('tab-desk');
+          }
+        }
+      }
+    });
+  </script>
+
+  <!-- Global Anti‑AutoFill / Autocomplete Disabler -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Disable autocomplete on all forms
+        document.querySelectorAll('form').forEach(function(form) {
+            form.setAttribute('autocomplete', 'off');
+
+            // add hidden fake fields to absorb browser autofill
+            const fakeText = document.createElement('input');
+            fakeText.type = 'text';
+            fakeText.style.display = 'none';
+            fakeText.autocomplete = 'off';
+
+            const fakePassword = document.createElement('input');
+            fakePassword.type = 'password';
+            fakePassword.style.display = 'none';
+            fakePassword.autocomplete = 'new-password';
+
+            form.prepend(fakeText);
+            form.prepend(fakePassword);
+        });
+
+        // Ensure all input and textarea elements have autocomplete disabled
+        document.querySelectorAll('input, textarea').forEach(function(input) {
+            if (!input.hasAttribute('data-keep-autocomplete')) {
+                input.setAttribute('autocomplete', 'off');
+            }
+        });
+    });
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
